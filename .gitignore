@@ -99,3 +99,6 @@ wrangler.toml
 packages/generated/api-types.ts
 packages/generated/api-client.ts
 packages/generated/api-client.schemas.ts
+
+# serena
+.serena
