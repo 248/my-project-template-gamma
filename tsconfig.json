@@ -2,31 +2,32 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "preserve",
     "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./apps/web/src/*"],
-      "@/components/*": ["./apps/web/src/components/*"],
-      "@/lib/*": ["./apps/web/src/lib/*"],
-      "@/app/*": ["./apps/web/src/app/*"]
+      "@/*": ["./src/*"],
+      "@template-gamma/contracts/*": ["./packages/contracts/*"],
+      "@template-gamma/generated/*": ["./packages/generated/*"],
+      "@template-gamma/core/*": ["./packages/core/*"],
+      "@template-gamma/adapters/*": ["./packages/adapters/*"],
+      "@template-gamma/bff/*": ["./packages/bff/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "vitest.config.ts"],
-  "exclude": ["node_modules", ".next", "dist", "build"],
-  "references": [
-    {
-      "path": "./apps/web"
-    }
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next", "dist", "build"]
 }

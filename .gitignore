@@ -94,3 +94,8 @@ jspm_packages/
 
 # Cloudflare
 wrangler.toml
+
+# Generated files
+packages/generated/api-types.ts
+packages/generated/api-client.ts
+packages/generated/api-client.schemas.ts

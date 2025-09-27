@@ -1,0 +1,20 @@
+{
+  "name": "@template-gamma/generated",
+  "version": "1.0.0",
+  "description": "Generated API types and client from OpenAPI specification",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./api-types": "./api-types.ts",
+    "./api-client": "./api-client.ts",
+    "./api-mutator": "./api-mutator.ts",
+    "./api-wrapper": "./api-wrapper.ts"
+  },
+  "files": [
+    "*.ts",
+    "*.d.ts"
+  ],
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

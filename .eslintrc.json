@@ -7,18 +7,40 @@
   },
   "env": {
     "node": true,
-    "es2022": true
+    "es2022": true,
+    "browser": true
   },
   "rules": {
     "prefer-const": "error",
     "no-var": "error"
   },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "extends": ["eslint:recommended"],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     ".next/",
     "dist/",
     "build/",
     "*.js",
-    "apps/"
+    "apps/",
+    "packages/generated/api-types.ts",
+    "packages/generated/api-client.ts",
+    "packages/generated/api-client.schemas.ts",
+    "packages/generated/api-mutator.ts",
+    "packages/generated/api-wrapper.ts"
   ]
 }

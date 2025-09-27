@@ -16,15 +16,24 @@
     "test:ui": "vitest --ui",
     "type-check": "pnpm --filter web type-check",
     "clean": "pnpm --filter web clean && rm -rf node_modules",
-    "prepare": "husky"
+    "prepare": "husky",
+    "setup": "pnpm install && pnpm openapi:generate",
+    "openapi:generate": "pnpm openapi:types && pnpm openapi:client",
+    "openapi:types": "openapi-typescript openapi/openapi.yaml -o packages/generated/api-types.ts",
+    "openapi:client": "orval --config orval.config.ts",
+    "openapi:lint": "redocly lint openapi/openapi.yaml",
+    "openapi:check": "pnpm openapi:generate && git diff --exit-code packages/generated/ || (echo 'OpenAPI generated files are out of sync. Run pnpm openapi:generate' && exit 1)"
   },
   "devDependencies": {
+    "@redocly/cli": "^1.25.0",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^8.57.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
+    "openapi-typescript": "^7.4.0",
+    "orval": "^7.3.0",
     "prettier": "^3.0.0",
     "typescript": "^5.6.0",
     "vitest": "^2.0.0"
