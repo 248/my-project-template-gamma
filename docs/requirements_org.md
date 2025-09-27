@@ -87,11 +87,11 @@
 - テスト: **Vitest** を使用すること
 - UI/デザイン: **Tailwind CSS** を利用し、[https://atlassian.design/components/](https://atlassian.design/components/) を参考にしたモダンなデザインとすること
 - パッケージ管理: **pnpm** を使用すること（ワークスペース運用）
-- Node 22、Wrangler compatibility\_date 固定
+- Node 22、Wrangler compatibility_date 固定
 - ESLint + Prettier + import整形、lint-staged+pre-commit
 - Renovate 導入（minor 自動、major は PR）
 - `pnpm dev` で wrangler dev + OpenAPI 生成チェック
-- CI matrix で BACKEND\_MODE=monolith|service を両方検証
+- CI matrix で BACKEND_MODE=monolith|service を両方検証
 - **マイグレーション運用ポリシー**:
   - スキーマの単一の真実は **Supabase CLI (SQL migrations)** に置く
   - `supabase migration new` で空SQLを生成し、開発者が記述
@@ -145,19 +145,16 @@ packages/generated/
 - **依存方向**: `web → bff → core` 一方向。逆流禁止
 
 - **禁止事項**:
-
   - `apps/web` から core を直接呼ばない
   - core から Next.js や fetch など環境依存を import しない
   - Route Handlers 内にビジネスロジックを書かない（必ず bff 経由）
 
 - **モード切替**:
-
   - `BACKEND_MODE=monolith` → bff を直呼び（同一Worker）
   - `BACKEND_MODE=service` → 生成クライアントで外部サービス呼び出し（Hono/Go/Python 等）
   - 将来の分離は apiClient 実装切替で完結
 
 - **CIガード**:
-
   - import ルールで依存方向違反を検出
   - OpenAPI の breaking change 検出
   - Zod による入出力バリデーションの自動テスト
@@ -201,14 +198,12 @@ packages/generated/
 - **変更手順**: 契約 → 生成 → 実装 → テスト
 
 - **ツールチェーン**:
-
   - openapi-typescript（型）
   - orval（fetchクライアント）
   - @redocly/cli（Lint/差分検出）
   - openapi-zod-client（Zodスキーマ生成, 必要に応じて）
 
 - **検証**:
-
   - Route Handlers で Zod による入力/出力バリデーションを必須化
   - 生成クライアントでコントラクトテストを実施
   - エラーコードが定義ファイルと一致することをテストで保証
@@ -239,7 +234,6 @@ apps/web/                # Next.js（UI と極薄API）
 ### 9.2 2モード切替
 
 - `BACKEND_MODE=monolith|service` を導入。
-
   - monolith: `/api/*` は bff を直呼び（同一Worker内）
   - service: `/api/*` は 生成クライアントで外部サービス呼び出し（Hono/Go/Python 等）または Service Bindings
 
@@ -264,13 +258,11 @@ apps/web/                # Next.js（UI と極薄API）
 ## 10. ローカル開発要件（Workers ローカル起動）
 
 - **単一コマンド起動**: ローカルで **Workers を起動**し、フロント（`/`、`/home`）とバック（`/api/*`）を同一プロセスで動作確認できること。
-
   - 例: `wrangler dev` 相当。ホットリロード（UI/Route Handlers の変更が即時反映）。
 
 - **実行モード切替**: 環境変数だけで `BACKEND_MODE=monolith|service` を切替可能。コード改変なしで両モード検証できること。
 
 - **環境変数の取り回し**: ローカル専用の変数定義（例: `.dev.vars`）で以下を管理できること。
-
   - `SUPABASE_URL`, `SUPABASE_ANON_KEY`（未設定時は **モック/疎通スキップ** が選べる）
   - `BACKEND_BASE_URL`（service モード時の呼び先。未設定なら失敗が明示される）
   - `LOG_LEVEL`, `CHECK_SUPABASE`, `BACKEND_MODE`
@@ -296,11 +288,9 @@ apps/web/                # Next.js（UI と極薄API）
 
 ### 受け入れ基準（Local Dev）
 
--
+- ***
 
----
-
----
+  ***
 
 ## 11. 非同期画像処理（Queues × Images × D1 × Kiribi）— 要件
 
@@ -435,4 +425,3 @@ apps/web/                # Next.js（UI と極薄API）
 ### 14.9 VS Code 拡張（任意）
 
 - ESLint / Prettier / Tailwind CSS IntelliSense / GitLens / Error Lens
-

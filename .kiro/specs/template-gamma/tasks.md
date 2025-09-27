@@ -7,12 +7,14 @@
 ## 実行環境の分離
 
 ### Windows環境での作業
+
 - Next.js開発サーバー（`next dev`）での機能実装・確認
 - 単体テスト・統合テストの実行
 - OpenAPI契約の定義・型生成
 - コード品質チェック（ESLint、Prettier）
 
 ### Linux環境での作業
+
 - OpenNextビルド（`@opennextjs/cloudflare build`）
 - Wranglerによるデプロイ・プレビュー
 - Cloudflare Workers環境での動作確認
@@ -20,7 +22,7 @@
 
 ## フェーズ1: Windows環境での基盤構築・機能実装
 
-- [ ] 1. プロジェクト基盤とツールチェーンの構築
+- [x] 1. プロジェクト基盤とツールチェーンの構築
   - プロジェクト構造の作成、pnpm ワークスペース設定、基本的な開発ツール（ESLint、Prettier、Vitest）の導入
   - **Windows環境**: `next dev` で動作確認可能な状態まで構築
   - _要件: 15.1, 16.1, 16.4, 20.4_
@@ -131,12 +133,14 @@
 ## 受け入れ基準
 
 ### フェーズ1完了基準（Windows環境）
+
 - 主要ユースケース（Top→Login→Home→Logout）と `/healthz|/readyz` の E2E テスト合格
 - Zod バリデーションが 422 を返却し、統一エラー封筒で返すことを確認
 - OpenAPI 型生成（openapi-typescript/orval）の生成物のみをクライアントが使用
 - **Linux スモークビルド CI が通る**（OpenNext 変換 + `wrangler preview --dry-run` 成功）
 
 ### フェーズ2完了基準（Linux環境）
+
 - `@opennextjs/cloudflare` でビルド → `.open-next` 生成成功
 - `wrangler.jsonc` で `compatibility_date` 固定、`nodejs_compat` 有効、KV バインディング設定済み
 - `.dev.vars`（開発）/Secrets（本番）の分離運用で起動し、env バインディングから取得可能
@@ -153,14 +157,15 @@
 ## 設定例
 
 ### wrangler.jsonc（R2版 - 最新推奨）
+
 ```json
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "template-gamma",
   "main": ".open-next/worker.js",
-  "assets": { 
-    "directory": ".open-next/assets", 
-    "binding": "ASSETS" 
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
   },
   "compatibility_date": "2025-09-23",
   "compatibility_flags": ["nodejs_compat"],
@@ -174,6 +179,7 @@
 ```
 
 ### 環境変数管理
+
 ```bash
 # .dev.vars（ローカル開発用 - 機微情報以外）
 SUPABASE_URL=your-supabase-url
@@ -187,6 +193,7 @@ BACKEND_MODE=monolith
 ```
 
 ### CI スモークビルド例
+
 ```yaml
 jobs:
   opennext-smoke:
@@ -201,6 +208,7 @@ jobs:
 ```
 
 ### 重要な実装注意点
+
 - **Edge ランタイム禁止**: `export const runtime = "edge"` をコードベースから除去すること
 - **互換性要件**: `compatibility_date >= 2024-09-23` + `nodejs_compat` が必須
 - **キャッシュ方式**: R2版（最新）を採用、KV版との混在は禁止
