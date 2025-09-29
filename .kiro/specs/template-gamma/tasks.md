@@ -101,12 +101,12 @@
   - **Windows環境**: 修正後のファクトリーでサービス生成・メソッド呼び出し確認、pnpm validate:mode成功確認
   - _要件: 17.1, 17.2_
 
-- [ ] 14. テストスイートの実装
+- [x] 14. テストスイートの実装
   - 単体テスト、統合テスト、E2E テスト（Next.js開発サーバー対象）の実装
   - **Windows環境**: Vitest、Playwright での全テスト実行・合格確認
   - _要件: 21.1, 21.2, 21.3, 21.4_
 
-- [ ] 14.1. OpenNext ビルド静的検証（Linux スモークビルド）
+- [x] 14.1. OpenNext ビルド静的検証（Linux スモークビルド）
   - CI での OpenNext ビルド検証（デプロイなし）、wrangler.jsonc 設定検証
   - **Linux環境（CI のみ）**: `@opennextjs/cloudflare build` + `wrangler deploy --dry-run` の成功確認
   - **オプション**: `pnpm opennextjs-cloudflare preview` でローカル Workers ランタイム動作確認

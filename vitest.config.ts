@@ -12,6 +12,13 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': '"test"',
   },
+  ssr: {
+    noExternal: [
+      '@template-gamma/adapters',
+      '@template-gamma/bff',
+      '@template-gamma/core',
+    ],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './apps/web/src'),

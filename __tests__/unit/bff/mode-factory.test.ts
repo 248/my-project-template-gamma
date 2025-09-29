@@ -3,7 +3,10 @@
  * 要件17.1: BACKEND_MODE=monolith|service を CI マトリクスで両方検証する
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// Next.js依存関係をモック
+vi.mock('next/server', () => ({}));
 import {
   createServiceFactory,
   getModeInfo,

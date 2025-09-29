@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Windows環境でのシンボリックリンク問題回避のため、standaloneを無効化
-  // output: 'standalone',
+  // OpenNext Cloudflare アダプタ用設定
+  output: 'standalone',
 
   // 実験的機能の設定
   experimental: {
@@ -27,6 +27,10 @@ const nextConfig = {
     GIT_COMMIT: process.env.GIT_COMMIT || 'dev',
     BUILD_TIME: process.env.BUILD_TIME || new Date().toISOString(),
   },
+
+  // Cloudflare Workers 互換性設定
+  // Edge Runtime は使用しない（OpenNext Cloudflare は Node.js ランタイムのみサポート）
+  // runtime: 'nodejs', // デフォルトなので明示的に設定不要
 };
 
 module.exports = nextConfig;

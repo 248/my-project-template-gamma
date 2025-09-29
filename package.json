@@ -15,6 +15,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "test:unit": "vitest run __tests__/unit",
+    "test:integration": "vitest run __tests__/integration",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
+    "opennext:build": "pnpm --filter web build && npx @opennextjs/cloudflare build",
+    "opennext:preview": "pnpm opennext:build && wrangler preview",
+    "opennext:deploy:dry": "pnpm opennext:build && wrangler deploy --dry-run",
     "test:mode": "pnpm test:mode:monolith && pnpm test:mode:service",
     "test:mode:monolith": "BACKEND_MODE=monolith NEXT_PUBLIC_BACKEND_MODE=monolith vitest run",
     "test:mode:service": "BACKEND_MODE=service NEXT_PUBLIC_BACKEND_MODE=service vitest run",
@@ -30,6 +38,8 @@
     "validate:mode": "tsx -e \"import { getBackendMode, validateBackendMode } from './packages/contracts/backend-mode.ts'; const mode = getBackendMode(); console.log('Current mode:', mode); if (!validateBackendMode(mode)) throw new Error('Invalid mode: ' + mode);\""
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.9.0",
+    "@playwright/test": "^1.55.1",
     "@redocly/cli": "^1.25.0",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -38,12 +48,14 @@
     "eslint-plugin-import": "^2.32.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
+    "msw": "^2.11.3",
     "openapi-typescript": "^7.4.0",
     "orval": "^7.3.0",
     "prettier": "^3.0.0",
     "tsx": "^4.20.6",
     "typescript": "^5.6.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.0.0",
+    "wrangler": "^4.40.2"
   },
   "engines": {
     "node": ">=22.0.0",
