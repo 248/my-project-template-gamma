@@ -4,7 +4,7 @@
  */
 
 import pino from 'pino';
-import type { Logger, LogContext, LoggerConfig } from './types.js';
+import type { Logger, LogContext, LoggerConfig } from './types';
 
 export class DevLogger implements Logger {
   private logger: pino.Logger;

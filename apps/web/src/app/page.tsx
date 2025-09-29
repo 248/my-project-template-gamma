@@ -1,6 +1,10 @@
 import Link from 'next/link';
+import { getCurrentUser } from '@/lib/auth-server';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getCurrentUser();
+  const isAuthenticated = user !== null;
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
       <div className="max-w-md w-full mx-auto">
@@ -14,25 +18,55 @@ export default function HomePage() {
             Cloudflare Workers 対応テンプレート
           </p>
 
-          <div className="space-y-4">
-            <Link
-              href="/auth/login"
-              className="btn btn-primary w-full block text-center"
-            >
-              ログイン
-            </Link>
+          {isAuthenticated ? (
+            // 認証済みユーザー向け表示
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                <p className="text-green-700 text-sm">
+                  ログイン中: {user.email || user.id}
+                </p>
+              </div>
 
-            <div className="text-sm text-gray-500">
-              <p>または</p>
+              <Link
+                href="/home"
+                className="btn btn-primary w-full block text-center"
+              >
+                ホームページへ
+              </Link>
+
+              <div className="text-sm text-gray-500">
+                <p>または</p>
+              </div>
+
+              <Link
+                href="/health"
+                className="btn btn-secondary w-full block text-center"
+              >
+                システム状態を確認
+              </Link>
             </div>
+          ) : (
+            // 未認証ユーザー向け表示
+            <div className="space-y-4">
+              <Link
+                href="/auth/login"
+                className="btn btn-primary w-full block text-center"
+              >
+                ログイン
+              </Link>
 
-            <Link
-              href="/health"
-              className="btn btn-secondary w-full block text-center"
-            >
-              システム状態を確認
-            </Link>
-          </div>
+              <div className="text-sm text-gray-500">
+                <p>または</p>
+              </div>
+
+              <Link
+                href="/health"
+                className="btn btn-secondary w-full block text-center"
+              >
+                システム状態を確認
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

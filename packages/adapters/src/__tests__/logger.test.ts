@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { LoggerFactory } from '../logger/logger-factory.js';
-import { DevLogger } from '../logger/dev-logger.js';
-import { WorkersLogger } from '../logger/workers-logger.js';
+import { LoggerFactory } from '../logger/logger-factory';
+import { DevLogger } from '../logger/dev-logger';
+import { WorkersLogger } from '../logger/workers-logger';
 
 // console.log/error をモック
 const mockConsoleLog = vi.fn();

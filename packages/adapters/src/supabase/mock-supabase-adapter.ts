@@ -4,7 +4,7 @@
  */
 
 import type { User } from '@template-gamma/core/user';
-import type { SupabaseAdapter } from './types.js';
+import type { SupabaseAdapter } from './types';
 
 export class MockSupabaseAdapter implements SupabaseAdapter {
   private users = new Map<string, User>();

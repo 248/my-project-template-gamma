@@ -27,9 +27,33 @@ export function middleware(request: NextRequest) {
   );
 
   if (isProtectedPath) {
-    // TODO: 実際の認証チェックは後のタスクで実装
-    // 現在はモック実装として、認証チェックをスキップ
-    console.log(`Protected path accessed: ${pathname}`);
+    // 認証チェック実装
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+
+    if (!accessToken) {
+      // 未認証の場合はログインページにリダイレクト
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // 環境変数でモック/実際のSupabaseを切り替え
+    const useMock = process.env.USE_MOCK_SUPABASE === 'true';
+
+    if (useMock) {
+      // モック実装: mock-access-token以外は無効とする
+      if (accessToken !== 'mock-access-token') {
+        const loginUrl = new URL('/auth/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        loginUrl.searchParams.set('error', 'invalid_token');
+        return NextResponse.redirect(loginUrl);
+      }
+    } else {
+      // 実際のSupabase Auth実装
+      // TODO: Supabase Adapterを使用してトークン検証を実装
+    }
+
+    console.log(`Authenticated access to protected path: ${pathname}`);
   }
 
   return response;

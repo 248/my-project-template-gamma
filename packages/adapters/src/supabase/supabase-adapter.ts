@@ -6,7 +6,7 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { User } from '@template-gamma/core/user';
-import type { SupabaseAdapter, SupabaseConfig, DatabaseUser } from './types.js';
+import type { SupabaseAdapter, SupabaseConfig, DatabaseUser } from './types';
 
 export class SupabaseAdapterImpl implements SupabaseAdapter {
   private client: SupabaseClient;

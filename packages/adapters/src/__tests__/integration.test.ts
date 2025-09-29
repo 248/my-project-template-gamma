@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { SupabaseFactory } from '../supabase/supabase-factory.js';
-import { StorageFactory } from '../storage/storage-factory.js';
-import { LoggerFactory } from '../logger/logger-factory.js';
-import { TraceContext } from '../trace-context/trace-context.js';
-import { STORAGE_BUCKETS } from '../storage/types.js';
+import { SupabaseFactory } from '../supabase/supabase-factory';
+import { StorageFactory } from '../storage/storage-factory';
+import { LoggerFactory } from '../logger/logger-factory';
+import { TraceContext } from '../trace-context/trace-context';
+import { STORAGE_BUCKETS } from '../storage/types';
 
 describe('Adapters Integration', () => {
   describe('Factory pattern with environment variables', () => {

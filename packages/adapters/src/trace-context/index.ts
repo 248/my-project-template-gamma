@@ -1,1 +1,1 @@
-export { TraceContext, type TraceInfo } from './trace-context.js';
+export { TraceContext, type TraceInfo } from './trace-context';

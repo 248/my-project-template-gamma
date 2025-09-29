@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TraceContext } from '../trace-context/trace-context.js';
+import { TraceContext } from '../trace-context/trace-context';
 
 describe('TraceContext', () => {
   describe('parseTraceparent', () => {

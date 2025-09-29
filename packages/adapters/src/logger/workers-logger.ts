@@ -3,7 +3,7 @@
  * 要件 7.2, 7.6: JSON 単行で出力し、本番/CI 環境でログが出力される時 THEN システムは JSONL 出力を使用する
  */
 
-import type { Logger, LogContext, LoggerConfig } from './types.js';
+import type { Logger, LogContext, LoggerConfig } from './types';
 
 export class WorkersLogger implements Logger {
   private config: LoggerConfig;

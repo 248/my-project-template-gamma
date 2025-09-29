@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MockStorageAdapter } from '../storage/mock-storage-adapter.js';
-import { STORAGE_BUCKETS } from '../storage/types.js';
+import { MockStorageAdapter } from '../storage/mock-storage-adapter';
+import { STORAGE_BUCKETS } from '../storage/types';
 
 describe('MockStorageAdapter', () => {
   let adapter: MockStorageAdapter;

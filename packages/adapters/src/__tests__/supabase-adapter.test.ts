@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MockSupabaseAdapter } from '../supabase/mock-supabase-adapter.js';
+import { MockSupabaseAdapter } from '../supabase/mock-supabase-adapter';
 import type { User } from '@template-gamma/core/user';
 
 describe('MockSupabaseAdapter', () => {

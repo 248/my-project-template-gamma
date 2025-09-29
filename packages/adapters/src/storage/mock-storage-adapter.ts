@@ -3,7 +3,7 @@
  * Windows環境での動作確認用
  */
 
-import type { StorageAdapter, StorageFile } from './types.js';
+import type { StorageAdapter, StorageFile } from './types';
 
 interface MockFile {
   path: string;
@@ -53,9 +53,9 @@ export class MockStorageAdapter implements StorageAdapter {
       type = contentType || 'application/octet-stream';
     } else {
       // File オブジェクトの場合（ブラウザ環境）
-      content = Buffer.from(await file.arrayBuffer());
-      size = file.size;
-      type = file.type || contentType || 'application/octet-stream';
+      content = Buffer.from(await (file as File).arrayBuffer());
+      size = (file as File).size;
+      type = (file as File).type || contentType || 'application/octet-stream';
     }
 
     const mockFile: MockFile = {

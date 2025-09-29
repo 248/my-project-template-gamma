@@ -2,6 +2,50 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { logout } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+
+// ログアウトボタンコンポーネント
+function LogoutButton() {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      const success = await logout();
+
+      if (success) {
+        router.push('/');
+      } else {
+        alert('ログアウトに失敗しました。再度お試しください。');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('ログアウトに失敗しました。再度お試しください。');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={isLoggingOut}
+      className={`btn btn-danger ${isLoggingOut ? 'loading' : ''}`}
+    >
+      {isLoggingOut ? (
+        <span className="flex items-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          ログアウト中...
+        </span>
+      ) : (
+        'ログアウト'
+      )}
+    </button>
+  );
+}
 
 export default function HomePage() {
   const [healthStatus, setHealthStatus] = useState<any>(null);
@@ -153,7 +197,7 @@ export default function HomePage() {
           トップページに戻る
         </Link>
 
-        <button className="btn btn-danger">ログアウト（実装予定）</button>
+        <LogoutButton />
       </div>
     </div>
   );

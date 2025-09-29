@@ -3,9 +3,9 @@
  * 環境変数に応じて実際のアダプタまたはモックアダプタを生成
  */
 
-import { SupabaseAdapterImpl } from './supabase-adapter.js';
-import { MockSupabaseAdapter } from './mock-supabase-adapter.js';
-import type { SupabaseAdapter, SupabaseConfig } from './types.js';
+import { SupabaseAdapterImpl } from './supabase-adapter';
+import { MockSupabaseAdapter } from './mock-supabase-adapter';
+import type { SupabaseAdapter, SupabaseConfig } from './types';
 
 export class SupabaseFactory {
   /**
@@ -20,10 +20,14 @@ export class SupabaseFactory {
     }
 
     const config: SupabaseConfig = {
-      url: env?.SUPABASE_URL || process.env.SUPABASE_URL || '',
-      anonKey: env?.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
+      url: (env?.SUPABASE_URL as string) || process.env.SUPABASE_URL || '',
+      anonKey:
+        (env?.SUPABASE_ANON_KEY as string) ||
+        process.env.SUPABASE_ANON_KEY ||
+        '',
       serviceRoleKey:
-        env?.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY,
+        (env?.SUPABASE_SERVICE_ROLE_KEY as string) ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
     };
 
     // 必須設定の検証

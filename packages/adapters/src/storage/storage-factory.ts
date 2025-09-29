@@ -3,9 +3,9 @@
  * 環境変数に応じて適切なStorageAdapterを生成
  */
 
-import { SupabaseStorageAdapter } from './supabase-storage-adapter.js';
-import { MockStorageAdapter } from './mock-storage-adapter.js';
-import type { StorageAdapter, StorageConfig } from './types.js';
+import { SupabaseStorageAdapter } from './supabase-storage-adapter';
+import { MockStorageAdapter } from './mock-storage-adapter';
+import type { StorageAdapter, StorageConfig } from './types';
 
 export class StorageFactory {
   /**
@@ -22,9 +22,9 @@ export class StorageFactory {
     const config: StorageConfig = {
       type: 'supabase', // 現在はSupabaseのみサポート
       supabase: {
-        url: env?.SUPABASE_URL || process.env.SUPABASE_URL || '',
+        url: (env?.SUPABASE_URL as string) || process.env.SUPABASE_URL || '',
         serviceRoleKey:
-          env?.SUPABASE_SERVICE_ROLE_KEY ||
+          (env?.SUPABASE_SERVICE_ROLE_KEY as string) ||
           process.env.SUPABASE_SERVICE_ROLE_KEY ||
           '',
       },
