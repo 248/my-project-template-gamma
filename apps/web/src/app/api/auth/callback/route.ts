@@ -4,19 +4,33 @@ import { createLogger } from '@template-gamma/adapters';
 
 /**
  * OAuth コールバック処理エンドポイント
- * GET /api/auth/callback?code=xxx&provider=xxx
+ * GET /api/auth/callback?code=xxx&provider=xxx&state=xxx
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const provider = searchParams.get('provider') || 'google';
+    const state = searchParams.get('state');
 
     if (!code) {
       return NextResponse.redirect(
         new URL('/auth/login?error=missing_code', request.url)
       );
     }
+
+    // CSRF対策: stateパラメータの検証
+    const cookieStore = await cookies();
+    const storedState = cookieStore.get('oauth-state')?.value;
+
+    if (!state || !storedState || state !== storedState) {
+      return NextResponse.redirect(
+        new URL('/auth/login?error=invalid_state', request.url)
+      );
+    }
+
+    // stateクッキーを削除（使い捨て）
+    cookieStore.delete('oauth-state');
 
     // 環境変数でモック/実際のSupabaseを切り替え
     const useMock = process.env.USE_MOCK_SUPABASE === 'true';

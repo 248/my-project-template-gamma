@@ -17,8 +17,25 @@ export interface RequestContext {
   startTime: Date;
 }
 
-// グローバルなリクエストコンテキスト管理（AsyncLocalStorage の代替）
-let currentRequestContext: RequestContext | null = null;
+// AsyncLocalStorageを使用した安全なリクエストコンテキスト管理（サーバーサイドのみ）
+let asyncLocalStorage: unknown = null;
+
+// サーバーサイドでのみAsyncLocalStorageを初期化
+if (typeof window === 'undefined') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AsyncLocalStorage } = require('async_hooks');
+    asyncLocalStorage = new AsyncLocalStorage<RequestContext>();
+  } catch {
+    // async_hooksが利用できない環境ではnullのまま
+    console.warn(
+      'AsyncLocalStorage is not available, falling back to simple context management'
+    );
+  }
+}
+
+// フォールバック用のシンプルなコンテキスト管理（クライアントサイド用）
+let fallbackContext: RequestContext | null = null;
 
 export class TraceContext {
   /**
@@ -83,9 +100,7 @@ export class TraceContext {
    * 32文字のトレースIDを生成する
    */
   private static generateTraceId(): string {
-    const uuid1 = crypto.randomUUID().replace(/-/g, '');
-    const uuid2 = crypto.randomUUID().replace(/-/g, '');
-    return (uuid1 + uuid2).substring(0, 32);
+    return crypto.randomUUID().replace(/-/g, '');
   }
 
   /**
@@ -103,7 +118,7 @@ export class TraceContext {
   }
 
   /**
-   * 新しいリクエストコンテキストを作成し、設定する
+   * 新しいリクエストコンテキストを作成し、AsyncLocalStorageで実行する
    */
   static createRequestContext(traceparent?: string): RequestContext {
     const traceInfo = this.parseTraceparent(traceparent);
@@ -113,33 +128,68 @@ export class TraceContext {
       startTime: new Date(),
     };
 
-    currentRequestContext = requestContext;
     return requestContext;
+  }
+
+  /**
+   * リクエストコンテキストを設定して関数を実行する
+   */
+  static runWithContext<T>(context: RequestContext, fn: () => T): T {
+    if (asyncLocalStorage) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (asyncLocalStorage as any).run(context, fn);
+    } else {
+      // フォールバック: シンプルなコンテキスト設定
+      const previousContext = fallbackContext;
+      fallbackContext = context;
+      try {
+        return fn();
+      } finally {
+        fallbackContext = previousContext;
+      }
+    }
   }
 
   /**
    * 現在のリクエストコンテキストを取得する
    */
   static getCurrentRequestContext(): RequestContext | null {
-    return currentRequestContext;
+    if (asyncLocalStorage) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (asyncLocalStorage as any).getStore() || null;
+    } else {
+      return fallbackContext;
+    }
   }
 
   /**
    * リクエストコンテキストをクリアする
    */
   static clearRequestContext(): void {
-    currentRequestContext = null;
+    if (!asyncLocalStorage) {
+      // フォールバック環境ではマニュアルクリア
+      fallbackContext = null;
+    }
+    // AsyncLocalStorageでは自動的にクリアされるため、何もしない
   }
 
   /**
    * 現在のコンテキストから新しい子スパンを作成する
    */
   static createChildSpanFromCurrent(): TraceInfo | null {
-    if (!currentRequestContext) {
+    const currentContext = this.getCurrentRequestContext();
+    if (!currentContext) {
       return null;
     }
 
-    return this.generateChildSpan(currentRequestContext.traceInfo);
+    return this.generateChildSpan(currentContext.traceInfo);
+  }
+
+  /**
+   * 指定されたコンテキストから子スパンを作成する（テスト用）
+   */
+  static createChildSpanFromContext(context: RequestContext): TraceInfo {
+    return this.generateChildSpan(context.traceInfo);
   }
 
   /**
@@ -150,14 +200,15 @@ export class TraceContext {
     traceId?: string;
     spanId?: string;
   } {
-    if (!currentRequestContext) {
+    const currentContext = this.getCurrentRequestContext();
+    if (!currentContext) {
       return {};
     }
 
     return {
-      requestId: currentRequestContext.requestId,
-      traceId: currentRequestContext.traceInfo.traceId,
-      spanId: currentRequestContext.traceInfo.spanId,
+      requestId: currentContext.requestId,
+      traceId: currentContext.traceInfo.traceId,
+      spanId: currentContext.traceInfo.spanId,
     };
   }
 }

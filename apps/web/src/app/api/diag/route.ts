@@ -52,14 +52,20 @@ export async function GET(request: NextRequest) {
       buildTime: process.env.BUILD_TIME || new Date().toISOString(),
       timestamp: new Date().toISOString(),
       details: {
-        uptime: process.uptime(),
-        memory: process.memoryUsage
-          ? {
-              used: process.memoryUsage().heapUsed,
-              total: process.memoryUsage().heapTotal,
-            }
-          : undefined,
+        // Cloudflare Workers互換性: process.uptime()とprocess.memoryUsage()は使用不可
+        uptime:
+          typeof process !== 'undefined' && process.uptime
+            ? process.uptime()
+            : undefined,
+        memory:
+          typeof process !== 'undefined' && process.memoryUsage
+            ? {
+                used: process.memoryUsage().heapUsed,
+                total: process.memoryUsage().heapTotal,
+              }
+            : undefined,
         environment: process.env.NODE_ENV || 'unknown',
+        runtime: typeof process !== 'undefined' ? 'node' : 'workers',
       },
     };
 

@@ -1,11 +1,11 @@
-import { NextRequest } from 'next/server';
+// import { NextRequest } from 'next/server';
 import { createLogger } from '@template-gamma/adapters';
 
 /**
  * Liveness check endpoint
  * 依存関係に触れない軽量チェック（要件12.1）
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const response = {
       status: 'ok' as const,

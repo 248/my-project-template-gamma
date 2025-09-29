@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+// import { NextRequest } from 'next/server';
 import { withErrorHandling } from '@template-gamma/bff/middleware/error-middleware';
 import { ValidationErrorHandlerFactory } from '@template-gamma/bff/validation/validation-error-handler';
 import {
@@ -6,14 +6,14 @@ import {
   EnvSchemas,
 } from '@template-gamma/contracts/validation-schemas';
 import { createLogger } from '@template-gamma/adapters';
-import { BffError, ERROR_CODES } from '@template-gamma/bff';
+// import { BffError, ERROR_CODES } from '@template-gamma/bff';
 
 /**
  * Readiness check endpoint
  * Supabase/Storageへの到達確認を含む（要件12.2）
  * 要件 5.5, 5.6: 統一エラーレスポンス
  */
-const readinessHandler = async (request: NextRequest): Promise<Response> => {
+const readinessHandler = async (): Promise<Response> => {
   const logger = createLogger();
   const validator = ValidationErrorHandlerFactory.create(logger);
 
@@ -36,10 +36,10 @@ const readinessHandler = async (request: NextRequest): Promise<Response> => {
 
   // 依存関係の状態から全体ステータスを決定
   const overallStatus = dependencies.every((dep) => dep.status === 'ok')
-    ? 'ok'
+    ? ('ok' as const)
     : dependencies.some((dep) => dep.status === 'degraded')
-      ? 'degraded'
-      : 'down';
+      ? ('degraded' as const)
+      : ('down' as const);
 
   const result = {
     status: overallStatus,

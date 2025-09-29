@@ -23,6 +23,7 @@ export interface SupabaseAdapter {
 
   // 認証関連
   getUser(accessToken: string): Promise<{ id: string; email?: string } | null>;
+  signOut(accessToken: string): Promise<void>;
 
   // 画像管理
   createImage(image: Image): Promise<Image>;

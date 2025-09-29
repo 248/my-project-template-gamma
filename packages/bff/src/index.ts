@@ -18,6 +18,13 @@ export {
   createNotFoundErrorResponse,
 } from './error-handler';
 
+// エラーコード（contracts から再エクスポート）
+export { ERROR_CODES } from '@template-gamma/contracts/error-codes';
+export type {
+  ErrorCode,
+  ApiError,
+} from '@template-gamma/contracts/error-codes';
+
 // バリデーションエラーハンドリング
 export {
   ValidationError,
@@ -76,3 +83,7 @@ export type {
   UpdateLastLoginRequest,
   GetUserStatsRequest,
 } from './user/index';
+
+// サービスファクトリー（Route Handler用）
+export { ServiceFactory } from './service-factory';
+export type { Services, ServiceDependencies } from './service-factory';

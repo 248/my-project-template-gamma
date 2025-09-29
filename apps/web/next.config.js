@@ -28,6 +28,18 @@ const nextConfig = {
     BUILD_TIME: process.env.BUILD_TIME || new Date().toISOString(),
   },
 
+  // Webpack設定
+  webpack: (config, { isServer }) => {
+    // Node.js固有のモジュールをサーバーサイドでのみ利用
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        async_hooks: false,
+      };
+    }
+    return config;
+  },
+
   // Cloudflare Workers 互換性設定
   // Edge Runtime は使用しない（OpenNext Cloudflare は Node.js ランタイムのみサポート）
   // runtime: 'nodejs', // デフォルトなので明示的に設定不要

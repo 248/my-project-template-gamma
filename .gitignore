@@ -95,10 +95,10 @@ jspm_packages/
 # Cloudflare
 wrangler.toml
 
-# Generated files
-packages/generated/api-types.ts
-packages/generated/api-client.ts
-packages/generated/api-client.schemas.ts
+# Generated files (これらのファイルはバージョン管理に含める)
+# packages/generated/api-types.ts
+# packages/generated/api-client.ts
+# packages/generated/api-client.schemas.ts
 
 # serena
 .serena

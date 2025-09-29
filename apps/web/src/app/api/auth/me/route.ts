@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createLogger } from '@template-gamma/adapters';
 
@@ -6,7 +6,7 @@ import { createLogger } from '@template-gamma/adapters';
  * 現在のユーザー情報取得エンドポイント
  * GET /api/auth/me
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('sb-access-token')?.value;

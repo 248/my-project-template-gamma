@@ -106,6 +106,56 @@ export class SupabaseAdapterImpl implements SupabaseAdapter {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async signOut(_accessToken: string): Promise<void> {
+    try {
+      // Supabaseのセッション無効化API
+      await this.client.auth.signOut();
+    } catch (error) {
+      // ログアウトエラーは警告レベルで処理（クライアント側のクッキー削除は続行）
+      throw new Error(
+        `Failed to sign out: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  // 画像管理メソッド（フェーズ2で実装予定）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async createImage(_image: unknown): Promise<unknown> {
+    // TODO: 実装が必要
+    throw new Error('Not implemented');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getImage(_imageId: string): Promise<unknown> {
+    // TODO: 実装が必要
+    throw new Error('Not implemented');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async updateImage(_image: unknown): Promise<unknown> {
+    // TODO: 実装が必要
+    throw new Error('Not implemented');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async deleteImage(_imageId: string): Promise<void> {
+    // TODO: 実装が必要
+    throw new Error('Not implemented');
+  }
+
+  async getUserImages(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _userId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _limit: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _offset: number
+  ): Promise<{ images: unknown[]; total: number }> {
+    // TODO: 実装が必要
+    throw new Error('Not implemented');
+  }
+
   private mapDatabaseUserToUser(dbUser: DatabaseUser): User {
     return {
       id: dbUser.id,

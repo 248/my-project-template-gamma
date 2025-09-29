@@ -59,12 +59,16 @@ describe('Logger と TraceContext の統合', () => {
 
     it('子スパンを生成できる', () => {
       const parentContext = TraceContext.createRequestContext();
-      const childSpan = TraceContext.createChildSpanFromCurrent();
 
-      expect(childSpan).toBeDefined();
-      expect(childSpan!.traceId).toBe(parentContext.traceInfo.traceId);
-      expect(childSpan!.parentId).toBe(parentContext.traceInfo.spanId);
-      expect(childSpan!.spanId).not.toBe(parentContext.traceInfo.spanId);
+      // コンテキストを設定してから子スパンを生成
+      TraceContext.runWithContext(parentContext, () => {
+        const childSpan = TraceContext.createChildSpanFromCurrent();
+
+        expect(childSpan).toBeDefined();
+        expect(childSpan!.traceId).toBe(parentContext.traceInfo.traceId);
+        expect(childSpan!.parentId).toBe(parentContext.traceInfo.spanId);
+        expect(childSpan!.spanId).not.toBe(parentContext.traceInfo.spanId);
+      });
     });
 
     it('traceparent ヘッダ文字列を生成できる', () => {
@@ -86,13 +90,16 @@ describe('Logger と TraceContext の統合', () => {
       // TraceContext を設定
       const context = TraceContext.createRequestContext();
 
-      // 実際のログ出力は動作確認済み（コンソール出力で確認）
-      // ここではTraceContextの統合ロジックをテスト
-      const traceContext = TraceContext.getLogContext();
+      // コンテキストを設定してからログコンテキストを取得
+      TraceContext.runWithContext(context, () => {
+        // 実際のログ出力は動作確認済み（コンソール出力で確認）
+        // ここではTraceContextの統合ロジックをテスト
+        const traceContext = TraceContext.getLogContext();
 
-      expect(traceContext.requestId).toBe(context.requestId);
-      expect(traceContext.traceId).toBe(context.traceInfo.traceId);
-      expect(traceContext.spanId).toBe(context.traceInfo.spanId);
+        expect(traceContext.requestId).toBe(context.requestId);
+        expect(traceContext.traceId).toBe(context.traceInfo.traceId);
+        expect(traceContext.spanId).toBe(context.traceInfo.spanId);
+      });
     });
 
     it('TraceContext が未設定の場合、空のコンテキストが返される', () => {
@@ -108,19 +115,22 @@ describe('Logger と TraceContext の統合', () => {
 
     it('子ロガーでも TraceContext が継承される（ロジック確認）', () => {
       const context = TraceContext.createRequestContext();
-      const logger = LoggerFactory.createDefault({
-        NODE_ENV: 'test',
-        LOG_LEVEL: 'info',
+
+      TraceContext.runWithContext(context, () => {
+        const logger = LoggerFactory.createDefault({
+          NODE_ENV: 'test',
+          LOG_LEVEL: 'info',
+        });
+
+        const childLogger = logger.child({ component: 'auth' });
+
+        // 子ロガーが作成されることを確認
+        expect(childLogger).toBeDefined();
+
+        // TraceContextが継続していることを確認
+        const traceContext = TraceContext.getLogContext();
+        expect(traceContext.requestId).toBe(context.requestId);
       });
-
-      const childLogger = logger.child({ component: 'auth' });
-
-      // 子ロガーが作成されることを確認
-      expect(childLogger).toBeDefined();
-
-      // TraceContextが継続していることを確認
-      const traceContext = TraceContext.getLogContext();
-      expect(traceContext.requestId).toBe(context.requestId);
     });
   });
 

@@ -86,6 +86,12 @@ export class MockSupabaseAdapter implements SupabaseAdapter {
     };
   }
 
+  async signOut(): Promise<void> {
+    // モック実装: ログアウト処理をシミュレート
+    // 実際の実装では、Supabaseのセッション無効化APIを呼び出す
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
   // 画像管理メソッド
   async createImage(image: Image): Promise<Image> {
     this.images.set(image.id, image);

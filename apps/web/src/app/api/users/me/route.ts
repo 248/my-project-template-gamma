@@ -6,10 +6,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { UserServiceFactory } from '@template-gamma/bff/user';
-import { SupabaseAdapterFactory } from '@template-gamma/adapters/supabase';
-import { LoggerFactory } from '@template-gamma/adapters/logger';
-import { createErrorResponse, ValidationError } from '@template-gamma/bff';
+import {
+  ServiceFactory,
+  createErrorResponse,
+  BffValidationError,
+} from '@template-gamma/bff';
 
 // レスポンススキーマ
 const UserResponseSchema = z.object({
@@ -24,16 +25,8 @@ const UserResponseSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const logger = LoggerFactory.create({
-      level: 'info',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    // 認証情報を取得（middlewareで設定される想定）
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       return NextResponse.json(
         { code: 'AUTH_REQUIRED', message: 'Authentication required' },
@@ -41,11 +34,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    logger.info({ userId }, 'Getting current user info');
-
-    // サービス初期化（テスト環境ではモックを使用）
-    const supabaseAdapter = SupabaseAdapterFactory.create(process.env);
-    const userService = UserServiceFactory.create(supabaseAdapter, logger);
+    // BFFファクトリーからサービスを取得（層違反を防ぐ）
+    const userService = ServiceFactory.createUserService();
 
     // ユーザー情報を取得または作成
     const user = await userService.createOrGetUser(userId);
@@ -61,22 +51,10 @@ export async function GET(request: NextRequest) {
     // バリデーション
     const validatedResponse = UserResponseSchema.parse(response);
 
-    logger.info({ userId }, 'User info retrieved successfully');
-
     return NextResponse.json(validatedResponse);
   } catch (error) {
-    const errorLogger = LoggerFactory.create({
-      level: 'error',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    errorLogger.error({ err: error }, 'Failed to get current user');
-
-    if (error instanceof ValidationError) {
-      return createErrorResponse(error.code, error.message, error.details);
+    if (error instanceof BffValidationError) {
+      return createErrorResponse('VALIDATION_ERROR', error.message);
     }
 
     return createErrorResponse('INTERNAL_ERROR', 'Internal server error');
@@ -88,16 +66,8 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const logger = LoggerFactory.create({
-      level: 'info',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    // 認証情報を取得
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       return NextResponse.json(
         { code: 'AUTH_REQUIRED', message: 'Authentication required' },
@@ -105,11 +75,8 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    logger.info({ userId }, 'Updating user last login');
-
-    // サービス初期化（テスト環境ではモックを使用）
-    const supabaseAdapter = SupabaseAdapterFactory.create(process.env);
-    const userService = UserServiceFactory.create(supabaseAdapter, logger);
+    // BFFファクトリーからサービスを取得（層違反を防ぐ）
+    const userService = ServiceFactory.createUserService();
 
     // 最終ログイン時刻を更新
     await userService.updateLastLogin(userId);
@@ -134,22 +101,10 @@ export async function PATCH(request: NextRequest) {
     // バリデーション
     const validatedResponse = UserResponseSchema.parse(response);
 
-    logger.info({ userId }, 'User last login updated successfully');
-
     return NextResponse.json(validatedResponse);
   } catch (error) {
-    const errorLogger = LoggerFactory.create({
-      level: 'error',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    errorLogger.error({ err: error }, 'Failed to update user last login');
-
-    if (error instanceof ValidationError) {
-      return createErrorResponse(error.code, error.message, error.details);
+    if (error instanceof BffValidationError) {
+      return createErrorResponse('VALIDATION_ERROR', error.message);
     }
 
     return createErrorResponse('INTERNAL_ERROR', 'Internal server error');
