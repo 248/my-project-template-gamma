@@ -4,8 +4,7 @@ import RefreshButton from '@/components/RefreshButton';
 // サーバーサイドでヘルスチェックを実行
 async function getHealthStatus() {
   try {
-    // TODO: 実際のヘルスチェックロジックは後のタスクで実装
-    // 現在はモックデータを返す
+    // モック実装：実際のヘルスチェックロジック
     await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms待機
 
     return {
