@@ -12,7 +12,8 @@
     "./user": "./src/user/index.ts",
     "./error-handler": "./src/error-handler.ts",
     "./validation/validation-error-handler": "./src/validation/validation-error-handler.ts",
-    "./middleware/error-middleware": "./src/middleware/error-middleware.ts"
+    "./middleware/error-middleware": "./src/middleware/error-middleware.ts",
+    "./mode-factory": "./src/mode-factory.ts"
   },
   "scripts": {
     "build": "tsc",
