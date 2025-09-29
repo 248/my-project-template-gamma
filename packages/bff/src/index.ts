@@ -7,7 +7,7 @@
 export {
   ApiErrorHandler,
   BffError,
-  ValidationError,
+  ValidationError as BffValidationError,
   AuthError,
   AuthorizationError,
   NotFoundError,
@@ -17,6 +17,32 @@ export {
   createForbiddenErrorResponse,
   createNotFoundErrorResponse,
 } from './error-handler';
+
+// バリデーションエラーハンドリング
+export {
+  ValidationError,
+  ValidationErrorHandler,
+  ValidationErrorHandlerFactory,
+  defaultValidationHandler,
+} from './validation/validation-error-handler';
+
+// エラーミドルウェア
+export {
+  ErrorMiddleware,
+  defaultErrorMiddleware,
+  withErrorHandling,
+  withAuthAndErrorHandling,
+  withCorsAndErrorHandling,
+  withRateLimitAndErrorHandling,
+  composeMiddleware,
+} from './middleware/error-middleware';
+
+export type {
+  ApiHandler,
+  ErrorMiddlewareOptions,
+} from './middleware/error-middleware';
+
+export type { ValidationErrorDetail } from './validation/validation-error-handler';
 
 // ヘルスチェックサービス
 export { HealthServiceImpl, HealthServiceFactory } from './health/index';

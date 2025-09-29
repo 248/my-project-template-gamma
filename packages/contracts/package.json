@@ -5,12 +5,17 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./error-codes": "./error-codes.ts"
+    ".": "./index.ts",
+    "./error-codes": "./error-codes.ts",
+    "./validation-schemas": "./validation-schemas.ts"
   },
   "files": [
     "*.ts",
     "*.d.ts"
   ],
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {
     "typescript": "^5.6.0"
   }
