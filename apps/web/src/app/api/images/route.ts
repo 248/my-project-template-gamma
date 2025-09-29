@@ -27,11 +27,11 @@ const getHandler = async (request: NextRequest): Promise<Response> => {
   const logger = createLogger();
   const validator = ValidationErrorHandlerFactory.create(logger);
 
-  console.log('GET /api/images - Starting request');
+  logger.info('GET /api/images - Starting request');
 
   // 環境変数の検証
   const env = validator.validateEnv(EnvSchemas.base.merge(EnvSchemas.supabase));
-  console.log('Environment parsed successfully');
+  logger.debug('Environment parsed successfully');
 
   // 認証情報を取得（withAuthAndErrorHandlingで既にチェック済み）
   const userId = request.headers.get('x-user-id')!;
@@ -44,24 +44,24 @@ const getHandler = async (request: NextRequest): Promise<Response> => {
   );
 
   // サービス依存関係の作成
-  console.log('Creating adapters...');
+  logger.debug('Creating adapters...');
   const supabaseAdapter = createSupabaseAdapter({
     url: env.SUPABASE_URL || 'mock://supabase',
     serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || 'mock-key',
   });
-  console.log('Supabase adapter created');
+  logger.debug('Supabase adapter created');
 
   const storageAdapter = createStorageAdapter({
     type: 'mock', // Windows環境ではモック版を使用
   });
-  console.log('Storage adapter created');
+  logger.debug('Storage adapter created');
 
   const imageService = ImageServiceFactory.create(
     supabaseAdapter,
     storageAdapter,
     logger
   );
-  console.log('Image service created');
+  logger.debug('Image service created');
 
   // 画像一覧を取得
   const result = await imageService.listUserImages(
@@ -96,11 +96,11 @@ const postHandler = async (request: NextRequest): Promise<Response> => {
   const logger = createLogger();
   const validator = ValidationErrorHandlerFactory.create(logger);
 
-  console.log('POST /api/images - Starting request');
+  logger.info('POST /api/images - Starting request');
 
   // 環境変数の検証
   const env = validator.validateEnv(EnvSchemas.base.merge(EnvSchemas.supabase));
-  console.log('Environment parsed successfully');
+  logger.debug('Environment parsed successfully');
 
   // 認証情報を取得（withAuthAndErrorHandlingで既にチェック済み）
   const userId = request.headers.get('x-user-id')!;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createLogger } from '@template-gamma/adapters';
 
 /**
  * 現在のユーザー情報取得エンドポイント
@@ -55,7 +56,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('User info retrieval failed:', error);
+    // 構造化ログでエラーを記録
+    const logger = createLogger();
+    logger.error({ err: error }, 'User info retrieval failed');
 
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { clientLogger } from '@/lib/logger';
 
 interface Image {
   id: string;
@@ -49,7 +50,7 @@ export default function ImageManagement() {
       const data: ImageListResponse = await response.json();
       setImages(data.images);
     } catch (err) {
-      console.error('Failed to fetch images:', err);
+      clientLogger.error({ err }, 'Failed to fetch images');
       setError('画像一覧の取得に失敗しました');
     } finally {
       setIsLoading(false);
@@ -124,7 +125,7 @@ export default function ImageManagement() {
         setUploadProgress(0);
       }, 1000);
     } catch (err) {
-      console.error('Failed to upload image:', err);
+      clientLogger.error({ err }, 'Failed to upload image');
       setError(
         err instanceof Error ? err.message : '画像のアップロードに失敗しました'
       );
@@ -155,7 +156,7 @@ export default function ImageManagement() {
 
       setImages((prev) => prev.filter((img) => img.id !== imageId));
     } catch (err) {
-      console.error('Failed to delete image:', err);
+      clientLogger.error({ err }, 'Failed to delete image');
       setError(err instanceof Error ? err.message : '画像の削除に失敗しました');
     }
   };

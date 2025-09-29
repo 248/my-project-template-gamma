@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { createLogger } from '@template-gamma/adapters';
 
 /**
  * Diagnostics check endpoint
@@ -70,7 +71,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Diagnostics check failed:', error);
+    // 構造化ログでエラーを記録
+    const logger = createLogger();
+    logger.error({ err: error }, 'Diagnostics check failed');
 
     return Response.json(
       {

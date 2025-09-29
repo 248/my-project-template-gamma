@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { User } from './auth';
+import { createLogger } from '@template-gamma/adapters';
 
 /**
  * サーバーサイド専用の認証ヘルパー関数
@@ -37,7 +38,8 @@ export async function getCurrentUser(): Promise<User | null> {
 
     return null;
   } catch (error) {
-    console.error('Failed to get current user:', error);
+    const logger = createLogger();
+    logger.error({ err: error }, 'Failed to get current user');
     return null;
   }
 }

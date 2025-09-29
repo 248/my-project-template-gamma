@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { createLogger } from '@template-gamma/adapters';
 
 /**
  * Liveness check endpoint
@@ -22,7 +23,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Liveness check failed:', error);
+    // 構造化ログでエラーを記録
+    const logger = createLogger();
+    logger.error({ err: error }, 'Liveness check failed');
 
     return Response.json(
       {

@@ -55,7 +55,11 @@ const customFetch = async <T = any>(
     headers.forEach((value, key) => {
       headerObj[key] = value;
     });
-    console.log(`[API] ${fetchOptions.method || 'GET'} ${url}`, {
+    // 構造化ログでリクエストを記録
+    const { clientLogger } = require('../../../apps/web/src/lib/logger');
+    clientLogger.debug({
+      method: fetchOptions.method || 'GET',
+      url,
       headers: headerObj,
       body: fetchOptions.body,
     });
@@ -86,10 +90,17 @@ const customFetch = async <T = any>(
       response.headers.forEach((value, key) => {
         responseHeaderObj[key] = value;
       });
-      console.log(`[API] ${response.status} ${response.statusText}`, {
-        data,
-        headers: responseHeaderObj,
-      });
+
+      const { clientLogger } = require('../../../apps/web/src/lib/logger');
+      clientLogger.debug(
+        {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          headers: responseHeaderObj,
+        },
+        'API Response'
+      );
     }
 
     // エラーレスポンスの処理
@@ -116,7 +127,8 @@ const customFetch = async <T = any>(
 
     // 開発環境でのエラーログ
     if (process.env.NODE_ENV === 'development') {
-      console.error(`[API] Network Error for ${url}:`, error);
+      const { clientLogger } = require('../../../apps/web/src/lib/logger');
+      clientLogger.error({ err: error, url }, 'API Network Error');
     }
 
     throw new ApiError(

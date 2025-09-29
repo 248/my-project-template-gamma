@@ -32,17 +32,36 @@ const defaultConfig: ApiClientConfig = {
   },
   onError: (error) => {
     if (process.env.NODE_ENV === 'development') {
-      console.error('[API Error]', error);
+      // 構造化ログでエラーを記録
+      const { clientLogger } = require('../../../apps/web/src/lib/logger');
+      clientLogger.error({ err: error }, 'API Error');
     }
   },
   onRequest: (url, options) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[API Request] ${options.method || 'GET'} ${url}`, options);
+      // 構造化ログでリクエストを記録
+      const { clientLogger } = require('../../../apps/web/src/lib/logger');
+      clientLogger.debug(
+        {
+          method: options.method || 'GET',
+          url,
+          options,
+        },
+        'API Request'
+      );
     }
   },
   onResponse: (response) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[API Response] ${response.status} ${response.statusText}`);
+      // 構造化ログでレスポンスを記録
+      const { clientLogger } = require('../../../apps/web/src/lib/logger');
+      clientLogger.debug(
+        {
+          status: response.status,
+          statusText: response.statusText,
+        },
+        'API Response'
+      );
     }
   },
 };

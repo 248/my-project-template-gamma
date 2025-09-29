@@ -2,6 +2,8 @@
  * 認証関連のヘルパー関数
  */
 
+import { clientLogger } from './logger';
+
 export interface User {
   id: string;
   email?: string;
@@ -34,7 +36,7 @@ export async function checkAuthStatus(): Promise<{
       isAuthenticated: false,
     };
   } catch (error) {
-    console.error('Auth status check failed:', error);
+    clientLogger.error({ err: error }, 'Auth status check failed');
     return {
       user: null,
       isAuthenticated: false,
@@ -54,7 +56,7 @@ export async function logout(): Promise<boolean> {
 
     return response.ok;
   } catch (error) {
-    console.error('Logout failed:', error);
+    clientLogger.error({ err: error }, 'Logout failed');
     return false;
   }
 }

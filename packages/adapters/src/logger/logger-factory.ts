@@ -5,6 +5,7 @@
 
 import { DevLogger } from './dev-logger';
 import { WorkersLogger } from './workers-logger';
+import { ClientLogger } from './client-logger';
 import { TraceContext } from '../trace-context/trace-context';
 import type { Logger, LoggerConfig, LogContext } from './types';
 
@@ -17,21 +18,32 @@ export class LoggerFactory {
   static create(config: LoggerConfig): Logger {
     let baseLogger: Logger;
 
-    // Workers環境の判定（より厳密に）
+    // 環境の判定
     const isWorkersEnv =
       typeof globalThis !== 'undefined' &&
       'caches' in globalThis &&
       typeof process === 'undefined';
 
-    if (isWorkersEnv) {
+    const isBrowser = typeof window !== 'undefined';
+
+    if (isBrowser) {
+      // ブラウザ環境（クライアントサイド）
+      baseLogger = new ClientLogger(config);
+    } else if (isWorkersEnv) {
+      // Cloudflare Workers環境
       baseLogger = new WorkersLogger(config);
     } else {
       // Node.js環境（開発環境・テスト環境）
       baseLogger = new DevLogger(config);
     }
 
-    // TraceContextを統合したLoggerでラップ
-    return new TraceContextLogger(baseLogger);
+    // TraceContextを統合したLoggerでラップ（サーバーサイドのみ）
+    if (isBrowser) {
+      // クライアントサイドではTraceContextラッパーを使用しない
+      return baseLogger;
+    } else {
+      return new TraceContextLogger(baseLogger);
+    }
   }
 
   /**

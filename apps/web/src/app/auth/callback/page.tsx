@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { clientLogger } from '@/lib/logger';
 
 function CallbackProcessor() {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>(
@@ -55,7 +56,7 @@ function CallbackProcessor() {
           throw new Error(`Callback failed: ${response.status}`);
         }
       } catch (error) {
-        console.error('Callback processing failed:', error);
+        clientLogger.error({ err: error }, 'Callback processing failed');
         setStatus('error');
         setMessage('認証処理に失敗しました。再度お試しください。');
       }

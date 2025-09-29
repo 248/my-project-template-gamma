@@ -10,7 +10,7 @@ import {
   createApiError,
   getStatusFromErrorCode,
 } from '@template-gamma/contracts/error-codes';
-import { Logger } from '@template-gamma/adapters';
+import { Logger, createLogger } from '@template-gamma/adapters';
 
 /**
  * カスタムエラークラス
@@ -88,13 +88,15 @@ export class ApiErrorHandler {
       apiError = createApiError(error.code, error.message, error.details);
       status = getStatusFromErrorCode(error.code);
     } else if (error instanceof Error) {
-      // 予期しないエラー
-      console.error('Unhandled error in BFF layer:', error);
+      // 予期しないエラー - 構造化ログで記録
+      const logger = createLogger();
+      logger.error({ err: error }, 'Unhandled error in BFF layer');
       apiError = createApiError(ERROR_CODES.INTERNAL_ERROR);
       status = 500;
     } else {
-      // 不明なエラー
-      console.error('Unknown error in BFF layer:', error);
+      // 不明なエラー - 構造化ログで記録
+      const logger = createLogger();
+      logger.error({ error }, 'Unknown error in BFF layer');
       apiError = createApiError(ERROR_CODES.INTERNAL_ERROR);
       status = 500;
     }

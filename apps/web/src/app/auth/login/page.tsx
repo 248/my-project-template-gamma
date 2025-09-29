@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
+import { clientLogger } from '@/lib/logger';
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -24,7 +25,7 @@ function LoginForm() {
 
       window.location.href = loginUrl.toString();
     } catch (err) {
-      console.error('Login initiation failed:', err);
+      clientLogger.error({ err }, 'Login initiation failed');
       setIsLoading(null);
     }
   };

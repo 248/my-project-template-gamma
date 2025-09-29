@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import ImageManagement from '@/components/ImageManagement';
+import { clientLogger } from '@/lib/logger';
 
 // ログアウトボタンコンポーネント
 function LogoutButton() {
@@ -23,7 +24,7 @@ function LogoutButton() {
         alert('ログアウトに失敗しました。再度お試しください。');
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      clientLogger.error({ err: error }, 'Logout error');
       alert('ログアウトに失敗しました。再度お試しください。');
     } finally {
       setIsLoggingOut(false);
@@ -77,7 +78,7 @@ export default function HomePage() {
       setHealthStatus(mockResponse);
     } catch (err) {
       setError('ヘルスチェックに失敗しました');
-      console.error('Health check failed:', err);
+      clientLogger.error({ err }, 'Health check failed');
     } finally {
       setIsLoading(false);
     }

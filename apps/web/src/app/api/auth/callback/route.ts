@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createLogger } from '@template-gamma/adapters';
 
 /**
  * OAuth コールバック処理エンドポイント
@@ -20,13 +21,18 @@ export async function GET(request: NextRequest) {
     // 環境変数でモック/実際のSupabaseを切り替え
     const useMock = process.env.USE_MOCK_SUPABASE === 'true';
 
-    console.log('Callback API Debug:', {
-      code,
-      provider,
-      USE_MOCK_SUPABASE: process.env.USE_MOCK_SUPABASE,
-      NODE_ENV: process.env.NODE_ENV,
-      useMock,
-    });
+    // 構造化ログでデバッグ情報を記録
+    const logger = createLogger();
+    logger.debug(
+      {
+        code,
+        provider,
+        USE_MOCK_SUPABASE: process.env.USE_MOCK_SUPABASE,
+        NODE_ENV: process.env.NODE_ENV,
+        useMock,
+      },
+      'Callback API Debug'
+    );
 
     if (useMock) {
       // モック実装: セッションCookieを設定
@@ -59,8 +65,8 @@ export async function GET(request: NextRequest) {
       });
 
       // ユーザー情報をDBに保存（モック）
-      console.log('Mock user session created:', mockSession.user);
-      console.log('Cookies set, redirecting to /home');
+      logger.info({ user: mockSession.user }, 'Mock user session created');
+      logger.info('Cookies set, redirecting to /home');
 
       return NextResponse.redirect(new URL('/home', request.url));
     }
@@ -70,7 +76,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(new URL('/home', request.url));
   } catch (error) {
-    console.error('Callback processing failed:', error);
+    // 構造化ログでエラーを記録
+    const logger = createLogger();
+    logger.error({ err: error }, 'Callback processing failed');
 
     return NextResponse.redirect(
       new URL('/auth/login?error=callback_failed', request.url)

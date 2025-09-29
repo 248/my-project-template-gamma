@@ -20,7 +20,10 @@ async function getHealthStatus() {
       checkTime: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('Health check failed:', error);
+    // サーバーサイドでの構造化ログ
+    const { createLogger } = await import('@template-gamma/adapters');
+    const logger = createLogger();
+    logger.error({ err: error }, 'Health check failed');
     return {
       status: 'down' as const,
       dependencies: [
