@@ -112,34 +112,53 @@
   - **オプション**: `pnpm opennextjs-cloudflare preview` でローカル Workers ランタイム動作確認
   - _要件: 15.2, 16.2, 19.1_
 
+- [x] 15. ドキュメント整備
+  - プロジェクト全体のドキュメント作成・更新、開発者向けガイドの整備
+  - **Windows環境**: 各種ドキュメントの作成・更新、READMEの充実
+  - **作成対象**:
+    - `docs/ci-cd.md`: CI/CDパイプライン説明（GitHub Actions、テスト戦略、デプロイフロー）
+    - `docs/architecture.md`: システムアーキテクチャ設計書（レイヤー構成、依存関係、モード切替）
+    - `docs/development.md`: 開発環境セットアップガイド（Windows/Linux環境、ツールチェーン）
+    - `docs/api.md`: API仕様書（OpenAPI連携、エラーハンドリング、認証フロー）
+    - `docs/testing.md`: テスト戦略書（単体・統合・E2Eテスト、モック戦略）
+    - `docs/deployment.md`: デプロイメントガイド（OpenNext、Cloudflare Workers、環境変数）
+    - `README.md`: プロジェクト概要の更新（クイックスタート、主要機能、技術スタック）
+  - _要件: 開発者体験向上、プロジェクト理解促進、保守性向上_
+
+- [ ] 16. フェーズ1レビュー対応
+  - フェーズ1完了後のコードレビュー指摘事項への対応
+  - **Windows環境**: レビュー指摘事項の修正、テスト実行による動作確認
+  - **対応内容**: コード品質改善、設計見直し、テストカバレッジ向上、ドキュメント整備
+  - _要件: 全般的な品質向上_
+
 ## フェーズ2: Linux環境でのCloudflare Workers対応
 
-- [ ] 15. Cloudflare Workers デプロイ設定の準備
+- [ ] 17. Cloudflare Workers デプロイ設定の準備
   - OpenNext ビルド設定、Wrangler 設定ファイル、環境変数管理の設定
   - **Linux環境必須**: OpenNext Cloudflareアダプタの設定、wrangler.jsonc作成
   - _要件: 15.2, 15.3, 16.2, 16.3, 19.1, 19.2_
 
-- [ ] 16. Adapters層のCloudflare Workers対応
+- [ ] 18. Adapters層のCloudflare Workers対応
   - 実際のSupabase接続、Cloudflare Workers環境でのLogger実装
   - **Linux環境必須**: Workers環境での動作確認、env バインディングの利用
   - _要件: 6.1, 7.1, 7.2, 13.1, 13.2_
 
-- [ ] 17. OpenNextビルドとローカルプレビュー
+- [ ] 19. OpenNextビルドとローカルプレビュー
   - `@opennextjs/cloudflare build` の実行、`wrangler preview` での動作確認
   - **Linux環境必須**: .open-next ディレクトリの生成、Workers環境での全機能確認
   - _要件: 15.2, 19.1_
 
-- [ ] 18. Sentry統合とモニタリング
+- [ ] 20. Sentry統合とモニタリング
   - `@sentry/cloudflare` の統合、Workers Logs での構造化ログ確認
   - **Linux環境必須**: Workers環境でのSentry動作確認、ログ収集の確認
   - _要件: 13.2, 13.3_
 
-- [ ] 19. CI/CD パイプラインの構築
+- [ ] 21. CI/CD パイプラインの構築
   - GitHub Actions、品質ゲート、自動デプロイの設定
   - **Linux環境必須**: GitHub Actions での OpenNext ビルド・デプロイ確認
   - _要件: 15.1, 15.4, 20.1, 20.2, 20.3_
 
-- [ ] 20. パフォーマンス最適化と最終検証
+- [ ] 22. パフォーマンス最適化と最終検証
   - 性能目標の達成、全機能の統合テスト、本番環境での動作確認
   - **Linux環境必須**: Workers環境でのパフォーマンステスト、本番デプロイ確認
   - _要件: 8.1, 8.2, 21.4_
