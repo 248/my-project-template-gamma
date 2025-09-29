@@ -9,6 +9,27 @@ import type { StorageAdapter, StorageConfig } from './types';
 
 export class StorageFactory {
   /**
+   * 設定に基づいてStorageAdapterを作成する
+   */
+  static createFromConfig(config: StorageConfig): StorageAdapter {
+    switch (config.type) {
+      case 'mock':
+        return new MockStorageAdapter();
+      case 'supabase':
+        if (!config.supabase?.url || !config.supabase?.serviceRoleKey) {
+          throw new Error(
+            'Supabase Storage configuration is missing. Please provide url and serviceRoleKey.'
+          );
+        }
+        return new SupabaseStorageAdapter(config);
+      case 'cloudflare-images':
+        throw new Error('Cloudflare Images adapter is not implemented yet');
+      default:
+        throw new Error(`Unknown storage type: ${config.type}`);
+    }
+  }
+
+  /**
    * 環境変数に応じてStorageAdapterを作成する
    */
   static create(env?: Record<string, unknown>): StorageAdapter {

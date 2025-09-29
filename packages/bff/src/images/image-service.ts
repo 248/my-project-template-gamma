@@ -25,7 +25,7 @@ import {
   AuthorizationError,
   NotFoundError,
   ERROR_CODES,
-} from '../error-handler.js';
+} from '../error-handler';
 
 /**
  * ページネーション情報

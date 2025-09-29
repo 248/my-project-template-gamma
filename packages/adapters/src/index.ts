@@ -43,11 +43,33 @@ import { StorageFactory } from './storage/index';
 import { LoggerFactory } from './logger/index';
 
 // Factory functions for easy usage
-export function createSupabaseAdapter() {
+export function createSupabaseAdapter(config?: {
+  url?: string;
+  serviceRoleKey?: string;
+}) {
+  if (config?.url && config?.serviceRoleKey) {
+    return SupabaseFactory.createFromConfig({
+      url: config.url,
+      anonKey: '', // モック版では不要
+      serviceRoleKey: config.serviceRoleKey,
+    });
+  }
   return SupabaseFactory.create();
 }
 
-export function createStorageAdapter() {
+export function createStorageAdapter(config?: {
+  type?: 'supabase' | 'cloudflare-images' | 'mock';
+  supabase?: {
+    url: string;
+    serviceRoleKey: string;
+  };
+}) {
+  if (config) {
+    return StorageFactory.createFromConfig({
+      type: config.type || 'mock',
+      supabase: config.supabase,
+    });
+  }
   return StorageFactory.create();
 }
 

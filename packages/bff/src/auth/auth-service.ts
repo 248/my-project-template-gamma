@@ -16,7 +16,7 @@ import {
   AuthError,
   ValidationError,
   ERROR_CODES,
-} from '../error-handler.js';
+} from '../error-handler';
 
 /**
  * ログイン結果

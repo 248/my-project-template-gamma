@@ -16,37 +16,37 @@ export {
   createAuthErrorResponse,
   createForbiddenErrorResponse,
   createNotFoundErrorResponse,
-} from './error-handler.js';
+} from './error-handler';
 
 // ヘルスチェックサービス
-export { HealthServiceImpl, HealthServiceFactory } from './health/index.js';
-export type { HealthService, SystemMetadata } from './health/index.js';
+export { HealthServiceImpl, HealthServiceFactory } from './health/index';
+export type { HealthService, SystemMetadata } from './health/index';
 
 // 認証サービス
-export { AuthServiceImpl, AuthServiceFactory } from './auth/index.js';
+export { AuthServiceImpl, AuthServiceFactory } from './auth/index';
 export type {
   AuthService,
   LoginResult,
   CallbackResult,
   SessionInfo,
-} from './auth/index.js';
+} from './auth/index';
 
 // 画像管理サービス
-export { ImageServiceImpl, ImageServiceFactory } from './images/index.js';
+export { ImageServiceImpl, ImageServiceFactory } from './images/index';
 export type {
   ImageService,
   ImageList,
   UploadResult,
   ImageFile,
   Pagination,
-} from './images/index.js';
+} from './images/index';
 
 // ユーザー管理サービス
-export { UserServiceImpl, UserServiceFactory } from './user/index.js';
+export { UserServiceImpl, UserServiceFactory } from './user/index';
 export type {
   UserService,
   UserStats,
   CreateUserRequest,
   UpdateLastLoginRequest,
   GetUserStatsRequest,
-} from './user/index.js';
+} from './user/index';

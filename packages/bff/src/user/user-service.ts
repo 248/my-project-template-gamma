@@ -13,8 +13,8 @@ import {
 } from '@template-gamma/core/user';
 import type { SupabaseAdapter } from '@template-gamma/adapters/supabase';
 import type { Logger } from '@template-gamma/adapters/logger';
-import { ValidationError, NotFoundError } from '../error-handler.js';
-import type { UserService, UserStats } from './types.js';
+import { ValidationError, NotFoundError } from '../error-handler';
+import type { UserService, UserStats } from './types';
 
 export class UserServiceImpl implements UserService {
   constructor(

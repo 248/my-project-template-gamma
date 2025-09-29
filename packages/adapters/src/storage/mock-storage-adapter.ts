@@ -3,7 +3,12 @@
  * Windows環境での動作確認用
  */
 
-import type { StorageAdapter, StorageFile } from './types';
+import type {
+  StorageAdapter,
+  StorageFile,
+  UploadOptions,
+  GetSignedUrlOptions,
+} from './types';
 
 interface MockFile {
   path: string;
@@ -34,8 +39,8 @@ export class MockStorageAdapter implements StorageAdapter {
   async uploadFile(
     bucket: string,
     path: string,
-    file: File | Buffer,
-    contentType?: string
+    file: File | Buffer | ArrayBuffer,
+    options?: UploadOptions
   ): Promise<string> {
     if (!this.files.has(bucket)) {
       this.files.set(bucket, new Map());
@@ -50,12 +55,19 @@ export class MockStorageAdapter implements StorageAdapter {
     if (file instanceof Buffer) {
       content = file;
       size = file.length;
-      type = contentType || 'application/octet-stream';
+      type = options?.contentType || 'application/octet-stream';
+    } else if (file instanceof ArrayBuffer) {
+      content = Buffer.from(file);
+      size = file.byteLength;
+      type = options?.contentType || 'application/octet-stream';
     } else {
       // File オブジェクトの場合（ブラウザ環境）
       content = Buffer.from(await (file as File).arrayBuffer());
       size = (file as File).size;
-      type = (file as File).type || contentType || 'application/octet-stream';
+      type =
+        (file as File).type ||
+        options?.contentType ||
+        'application/octet-stream';
     }
 
     const mockFile: MockFile = {
@@ -73,7 +85,7 @@ export class MockStorageAdapter implements StorageAdapter {
   async getSignedUrl(
     bucket: string,
     path: string,
-    expiresIn: number = 3600
+    options?: GetSignedUrlOptions
   ): Promise<string> {
     const bucketFiles = this.files.get(bucket);
     if (!bucketFiles || !bucketFiles.has(path)) {
@@ -81,6 +93,7 @@ export class MockStorageAdapter implements StorageAdapter {
     }
 
     // モック用の署名付きURL（実際には使用できない）
+    const expiresIn = options?.expiresIn || 3600;
     const expiry = Date.now() + expiresIn * 1000;
     return `https://mock-storage.example.com/${bucket}/${path}?expires=${expiry}&signature=mock-signature`;
   }

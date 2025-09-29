@@ -18,7 +18,7 @@ import {
   StorageAdapter,
   Logger,
 } from '@template-gamma/adapters';
-import { BffError, ERROR_CODES } from '../error-handler.js';
+import { BffError, ERROR_CODES } from '../error-handler';
 
 /**
  * システムメタデータ

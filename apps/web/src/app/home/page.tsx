@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import ImageManagement from '@/components/ImageManagement';
 
 // ログアウトボタンコンポーネント
 function LogoutButton() {
@@ -176,18 +177,14 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 画像管理セクション（将来実装） */}
+        {/* 画像管理セクション */}
         <div className="card">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">画像管理</h2>
           <p className="text-gray-600 mb-4">
-            画像のアップロードと管理機能（実装予定）
+            画像のアップロードと管理ができます
           </p>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-center">
-            <p className="text-gray-500 text-sm">
-              この機能は後のタスクで実装されます
-            </p>
-          </div>
+          <ImageManagement />
         </div>
       </div>
 

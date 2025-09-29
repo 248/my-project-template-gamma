@@ -4,10 +4,12 @@
  */
 
 import type { User } from '@template-gamma/core/user';
+import type { Image } from '@template-gamma/core/image';
 import type { SupabaseAdapter } from './types';
 
 export class MockSupabaseAdapter implements SupabaseAdapter {
   private users = new Map<string, User>();
+  private images = new Map<string, Image>();
   private shouldFailPing = false;
 
   constructor(options?: { shouldFailPing?: boolean }) {
@@ -84,6 +86,50 @@ export class MockSupabaseAdapter implements SupabaseAdapter {
     };
   }
 
+  // 画像管理メソッド
+  async createImage(image: Image): Promise<Image> {
+    this.images.set(image.id, image);
+    return image;
+  }
+
+  async getImage(imageId: string): Promise<Image | null> {
+    return this.images.get(imageId) || null;
+  }
+
+  async updateImage(image: Image): Promise<Image> {
+    if (!this.images.has(image.id)) {
+      throw new Error(`Image with id ${image.id} not found`);
+    }
+    this.images.set(image.id, image);
+    return image;
+  }
+
+  async deleteImage(imageId: string): Promise<void> {
+    this.images.delete(imageId);
+  }
+
+  async getUserImages(
+    userId: string,
+    limit: number,
+    offset: number
+  ): Promise<{ images: Image[]; total: number }> {
+    // ユーザーの画像をフィルタリング
+    const userImages = Array.from(this.images.values()).filter(
+      (image) => image.userId === userId
+    );
+
+    // 作成日時の降順でソート
+    userImages.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    // ページネーション
+    const paginatedImages = userImages.slice(offset, offset + limit);
+
+    return {
+      images: paginatedImages,
+      total: userImages.length,
+    };
+  }
+
   // テスト用のヘルパーメソッド
   setFailPing(shouldFail: boolean): void {
     this.shouldFailPing = shouldFail;
@@ -93,7 +139,25 @@ export class MockSupabaseAdapter implements SupabaseAdapter {
     this.users.clear();
   }
 
+  clearImages(): void {
+    this.images.clear();
+  }
+
   addTestUser(user: User): void {
     this.users.set(user.id, user);
+  }
+
+  addTestImage(image: Image): void {
+    this.images.set(image.id, image);
+  }
+
+  getImageCount(): number {
+    return this.images.size;
+  }
+
+  getUserImageCount(userId: string): number {
+    return Array.from(this.images.values()).filter(
+      (image) => image.userId === userId
+    ).length;
   }
 }

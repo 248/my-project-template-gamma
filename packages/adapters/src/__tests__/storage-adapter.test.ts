@@ -43,7 +43,7 @@ describe('MockStorageAdapter', () => {
         STORAGE_BUCKETS.USER_IMAGES,
         path,
         fileContent,
-        'image/jpeg'
+        { contentType: 'image/jpeg' }
       );
 
       expect(uploadedPath).toBe(path);
@@ -64,7 +64,7 @@ describe('MockStorageAdapter', () => {
       const signedUrl = await adapter.getSignedUrl(
         STORAGE_BUCKETS.USER_IMAGES,
         path,
-        3600
+        { expiresIn: 3600 }
       );
 
       expect(signedUrl).toContain(STORAGE_BUCKETS.USER_IMAGES);
@@ -75,7 +75,9 @@ describe('MockStorageAdapter', () => {
 
     it('should throw error for non-existent file when getting signed URL', async () => {
       await expect(
-        adapter.getSignedUrl(STORAGE_BUCKETS.USER_IMAGES, 'non-existent.jpg')
+        adapter.getSignedUrl(STORAGE_BUCKETS.USER_IMAGES, 'non-existent.jpg', {
+          expiresIn: 3600,
+        })
       ).rejects.toThrow('File not found');
     });
 

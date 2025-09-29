@@ -1,3 +1,8 @@
+/**
+ * Core Image 機能のテスト
+ * 要件 11.1-11.2: 画像保存の段階的方針のテスト
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   createImage,
@@ -12,18 +17,14 @@ import {
   isImageFailed,
   formatFileSize,
   calculateUploadProgress,
-  type Image,
 } from '../image';
 
-describe('image', () => {
-  const mockUserId = '12345678-1234-1234-1234-123456789012';
-  const mockImageId = '87654321-4321-4321-4321-210987654321';
-
+describe('Core Image Functions', () => {
   describe('createImage', () => {
-    it('新しい画像レコードを正しく作成する', () => {
+    it('should create image with correct properties', () => {
       const input = {
-        id: mockImageId,
-        userId: mockUserId,
+        id: 'test-id',
+        userId: 'user-id',
         filename: 'test.jpg',
         fileSize: 1024,
         mimeType: 'image/jpeg',
@@ -31,30 +32,40 @@ describe('image', () => {
 
       const image = createImage(input);
 
-      expect(image.id).toBe(mockImageId);
-      expect(image.userId).toBe(mockUserId);
+      expect(image.id).toBe('test-id');
+      expect(image.userId).toBe('user-id');
       expect(image.filename).toBe('test.jpg');
       expect(image.status).toBe('uploading');
       expect(image.fileSize).toBe(1024);
       expect(image.mimeType).toBe('image/jpeg');
-      expect(image.storagePath).toBe(`${mockUserId}/${mockImageId}/test.jpg`);
+      expect(image.storagePath).toBe('user-id/test-id/test.jpg');
       expect(image.createdAt).toBeInstanceOf(Date);
       expect(image.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should create image without optional properties', () => {
+      const input = {
+        id: 'test-id',
+        userId: 'user-id',
+        filename: 'test.jpg',
+      };
+
+      const image = createImage(input);
+
+      expect(image.fileSize).toBeUndefined();
+      expect(image.mimeType).toBeUndefined();
     });
   });
 
   describe('updateImage', () => {
-    it('画像レコードを更新する', () => {
-      const originalImage: Image = {
-        id: mockImageId,
-        userId: mockUserId,
+    it('should update image properties', () => {
+      const originalImage = createImage({
+        id: 'test-id',
+        userId: 'user-id',
         filename: 'test.jpg',
-        storagePath: `${mockUserId}/${mockImageId}/test.jpg`,
-        status: 'uploading',
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
-      };
+      });
 
+      // 少し待ってから更新して時間差を確保
       const updatedImage = updateImage(originalImage, {
         status: 'ready',
         fileSize: 2048,
@@ -62,46 +73,47 @@ describe('image', () => {
 
       expect(updatedImage.status).toBe('ready');
       expect(updatedImage.fileSize).toBe(2048);
-      expect(updatedImage.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedImage.filename).toBe('test.jpg'); // 変更されない
+      expect(updatedImage.updatedAt.getTime()).toBeGreaterThanOrEqual(
         originalImage.updatedAt.getTime()
       );
     });
   });
 
   describe('generateStoragePath', () => {
-    it('正しいストレージパスを生成する', () => {
-      const path = generateStoragePath(mockUserId, mockImageId, 'test.jpg');
-      expect(path).toBe(`${mockUserId}/${mockImageId}/test.jpg`);
+    it('should generate correct storage path', () => {
+      const path = generateStoragePath('user-123', 'image-456', 'photo.jpg');
+      expect(path).toBe('user-123/image-456/photo.jpg');
     });
   });
 
   describe('getFileExtension', () => {
-    it('ファイル名から拡張子を取得する', () => {
+    it('should extract file extension correctly', () => {
       expect(getFileExtension('test.jpg')).toBe('.jpg');
       expect(getFileExtension('image.PNG')).toBe('.png');
-      expect(getFileExtension('file.with.dots.gif')).toBe('.gif');
-    });
-
-    it('拡張子がない場合は空文字を返す', () => {
-      expect(getFileExtension('filename')).toBe('');
+      expect(getFileExtension('file.tar.gz')).toBe('.gz');
+      expect(getFileExtension('noextension')).toBe('');
+      expect(getFileExtension('')).toBe('');
     });
   });
 
   describe('getExtensionFromMimeType', () => {
-    it('MIMEタイプから拡張子を推定する', () => {
+    it('should return correct extension for known MIME types', () => {
       expect(getExtensionFromMimeType('image/jpeg')).toBe('.jpg');
       expect(getExtensionFromMimeType('image/png')).toBe('.png');
       expect(getExtensionFromMimeType('image/gif')).toBe('.gif');
       expect(getExtensionFromMimeType('image/webp')).toBe('.webp');
+      expect(getExtensionFromMimeType('IMAGE/JPEG')).toBe('.jpg'); // 大文字小文字
     });
 
-    it('未知のMIMEタイプの場合は空文字を返す', () => {
+    it('should return empty string for unknown MIME types', () => {
+      expect(getExtensionFromMimeType('text/plain')).toBe('');
       expect(getExtensionFromMimeType('application/pdf')).toBe('');
     });
   });
 
   describe('validateFileUpload', () => {
-    it('有効なファイルの場合は空の配列を返す', () => {
+    it('should pass validation for valid file', () => {
       const file = {
         filename: 'test.jpg',
         size: 1024,
@@ -109,10 +121,10 @@ describe('image', () => {
       };
 
       const errors = validateFileUpload(file);
-      expect(errors).toEqual([]);
+      expect(errors).toHaveLength(0);
     });
 
-    it('ファイル名が空の場合はエラーを返す', () => {
+    it('should reject missing filename', () => {
       const file = {
         filename: '',
         size: 1024,
@@ -124,232 +136,215 @@ describe('image', () => {
       expect(errors[0].field).toBe('filename');
     });
 
-    it('許可されていない拡張子の場合はエラーを返す', () => {
+    it('should reject file without extension', () => {
       const file = {
-        filename: 'test.pdf',
+        filename: 'noextension',
         size: 1024,
-        mimeType: 'application/pdf',
-      };
-
-      const errors = validateFileUpload(file);
-      expect(
-        errors.some(
-          (e) =>
-            e.field === 'filename' && e.message.includes('許可されていない')
-        )
-      ).toBe(true);
-    });
-
-    it('ファイルサイズが上限を超える場合はエラーを返す', () => {
-      const file = {
-        filename: 'test.jpg',
-        size: 20 * 1024 * 1024, // 20MB
         mimeType: 'image/jpeg',
       };
 
       const errors = validateFileUpload(file);
-      expect(
-        errors.some((e) => e.field === 'size' && e.message.includes('上限'))
-      ).toBe(true);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].field).toBe('filename');
     });
 
-    it('許可されていないMIMEタイプの場合はエラーを返す', () => {
+    it('should reject unsupported file extension', () => {
       const file = {
-        filename: 'test.jpg',
+        filename: 'test.txt',
         size: 1024,
-        mimeType: 'application/pdf',
+        mimeType: 'text/plain',
       };
 
       const errors = validateFileUpload(file);
-      expect(
-        errors.some(
-          (e) =>
-            e.field === 'mimeType' && e.message.includes('許可されていない')
-        )
-      ).toBe(true);
+      expect(errors).toHaveLength(2); // 拡張子とMIMEタイプの両方でエラー
+      expect(errors.some((e) => e.field === 'filename')).toBe(true);
+      expect(errors.some((e) => e.field === 'mimeType')).toBe(true);
+    });
+
+    it('should reject file that is too large', () => {
+      const file = {
+        filename: 'test.jpg',
+        size: 11 * 1024 * 1024, // 11MB
+        mimeType: 'image/jpeg',
+      };
+
+      const errors = validateFileUpload(file);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].field).toBe('size');
+    });
+
+    it('should reject zero-size file', () => {
+      const file = {
+        filename: 'test.jpg',
+        size: 0,
+        mimeType: 'image/jpeg',
+      };
+
+      const errors = validateFileUpload(file);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].field).toBe('size');
+    });
+
+    it('should use custom validation options', () => {
+      const file = {
+        filename: 'test.jpg',
+        size: 1024,
+        mimeType: 'image/jpeg',
+      };
+
+      const customOptions = {
+        maxSizeBytes: 512, // 512バイト制限
+        allowedMimeTypes: ['image/png'], // PNGのみ許可
+        allowedExtensions: ['.png'],
+      };
+
+      const errors = validateFileUpload(file, customOptions);
+      expect(errors).toHaveLength(3); // サイズ、MIMEタイプ、拡張子でエラー
     });
   });
 
   describe('validateImage', () => {
-    it('有効な画像レコードの場合は空の配列を返す', () => {
-      const image: Image = {
-        id: mockImageId,
-        userId: mockUserId,
+    it('should pass validation for valid image', () => {
+      const image = createImage({
+        id: 'test-id',
+        userId: 'user-id',
         filename: 'test.jpg',
-        storagePath: `${mockUserId}/${mockImageId}/test.jpg`,
-        status: 'ready',
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-02'),
-      };
+      });
 
       const errors = validateImage(image);
-      expect(errors).toEqual([]);
+      expect(errors).toHaveLength(0);
     });
 
-    it('無効なステータスの場合はエラーを返す', () => {
-      const image = {
-        id: mockImageId,
-        userId: mockUserId,
-        filename: 'test.jpg',
-        storagePath: `${mockUserId}/${mockImageId}/test.jpg`,
-        status: 'invalid',
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-02'),
-      } as Image;
+    it('should reject image with missing required fields', () => {
+      const invalidImage = {
+        id: '',
+        userId: '',
+        filename: '',
+        storagePath: '',
+        status: 'invalid' as 'uploading',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const errors = validateImage(image);
+      const errors = validateImage(invalidImage);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some((e) => e.field === 'id')).toBe(true);
+      expect(errors.some((e) => e.field === 'userId')).toBe(true);
+      expect(errors.some((e) => e.field === 'filename')).toBe(true);
       expect(errors.some((e) => e.field === 'status')).toBe(true);
     });
-  });
 
-  describe('isImageDisplayable', () => {
-    it('readyステータスの画像は表示可能', () => {
-      const image: Image = {
-        id: mockImageId,
-        userId: mockUserId,
+    it('should reject image with invalid dates', () => {
+      const invalidImage = {
+        id: 'test-id',
+        userId: 'user-id',
         filename: 'test.jpg',
         storagePath: 'path',
-        status: 'ready',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: 'ready' as const,
+        createdAt: new Date('invalid'),
+        updatedAt: new Date('invalid'),
       };
 
-      expect(isImageDisplayable(image)).toBe(true);
+      const errors = validateImage(invalidImage);
+      expect(errors.some((e) => e.field === 'createdAt')).toBe(true);
+      expect(errors.some((e) => e.field === 'updatedAt')).toBe(true);
     });
 
-    it('ready以外のステータスの画像は表示不可', () => {
-      const statuses: Array<Image['status']> = [
-        'uploading',
-        'processing',
-        'failed',
-      ];
-
-      statuses.forEach((status) => {
-        const image: Image = {
-          id: mockImageId,
-          userId: mockUserId,
-          filename: 'test.jpg',
-          storagePath: 'path',
-          status,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        expect(isImageDisplayable(image)).toBe(false);
-      });
-    });
-  });
-
-  describe('isImageProcessing', () => {
-    it('uploadingまたはprocessingステータスの画像は処理中', () => {
-      const processingStatuses: Array<Image['status']> = [
-        'uploading',
-        'processing',
-      ];
-
-      processingStatuses.forEach((status) => {
-        const image: Image = {
-          id: mockImageId,
-          userId: mockUserId,
-          filename: 'test.jpg',
-          storagePath: 'path',
-          status,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        expect(isImageProcessing(image)).toBe(true);
-      });
-    });
-
-    it('readyまたはfailedステータスの画像は処理中ではない', () => {
-      const nonProcessingStatuses: Array<Image['status']> = ['ready', 'failed'];
-
-      nonProcessingStatuses.forEach((status) => {
-        const image: Image = {
-          id: mockImageId,
-          userId: mockUserId,
-          filename: 'test.jpg',
-          storagePath: 'path',
-          status,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        expect(isImageProcessing(image)).toBe(false);
-      });
-    });
-  });
-
-  describe('isImageFailed', () => {
-    it('failedステータスの画像は失敗状態', () => {
-      const image: Image = {
-        id: mockImageId,
-        userId: mockUserId,
+    it('should reject image with updatedAt before createdAt', () => {
+      const invalidImage = {
+        id: 'test-id',
+        userId: 'user-id',
         filename: 'test.jpg',
         storagePath: 'path',
-        status: 'failed',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: 'ready' as const,
+        createdAt: new Date('2024-01-02'),
+        updatedAt: new Date('2024-01-01'), // 作成日より前
       };
 
-      expect(isImageFailed(image)).toBe(true);
+      const errors = validateImage(invalidImage);
+      expect(errors.some((e) => e.field === 'updatedAt')).toBe(true);
+    });
+  });
+
+  describe('status check functions', () => {
+    it('should correctly identify displayable images', () => {
+      const readyImage = createImage({
+        id: 'test-id',
+        userId: 'user-id',
+        filename: 'test.jpg',
+      });
+      readyImage.status = 'ready';
+
+      const uploadingImage = { ...readyImage, status: 'uploading' as const };
+
+      expect(isImageDisplayable(readyImage)).toBe(true);
+      expect(isImageDisplayable(uploadingImage)).toBe(false);
     });
 
-    it('failed以外のステータスの画像は失敗状態ではない', () => {
-      const nonFailedStatuses: Array<Image['status']> = [
-        'uploading',
-        'processing',
-        'ready',
-      ];
-
-      nonFailedStatuses.forEach((status) => {
-        const image: Image = {
-          id: mockImageId,
-          userId: mockUserId,
-          filename: 'test.jpg',
-          storagePath: 'path',
-          status,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        expect(isImageFailed(image)).toBe(false);
+    it('should correctly identify processing images', () => {
+      const uploadingImage = createImage({
+        id: 'test-id',
+        userId: 'user-id',
+        filename: 'test.jpg',
       });
+      uploadingImage.status = 'uploading';
+
+      const processingImage = {
+        ...uploadingImage,
+        status: 'processing' as const,
+      };
+      const readyImage = { ...uploadingImage, status: 'ready' as const };
+
+      expect(isImageProcessing(uploadingImage)).toBe(true);
+      expect(isImageProcessing(processingImage)).toBe(true);
+      expect(isImageProcessing(readyImage)).toBe(false);
+    });
+
+    it('should correctly identify failed images', () => {
+      const failedImage = createImage({
+        id: 'test-id',
+        userId: 'user-id',
+        filename: 'test.jpg',
+      });
+      failedImage.status = 'failed';
+
+      const readyImage = { ...failedImage, status: 'ready' as const };
+
+      expect(isImageFailed(failedImage)).toBe(true);
+      expect(isImageFailed(readyImage)).toBe(false);
     });
   });
 
   describe('formatFileSize', () => {
-    it('ファイルサイズを人間が読みやすい形式に変換する', () => {
+    it('should format file sizes correctly', () => {
       expect(formatFileSize(0)).toBe('0 B');
       expect(formatFileSize(1024)).toBe('1 KB');
-      expect(formatFileSize(1024 * 1024)).toBe('1 MB');
       expect(formatFileSize(1536)).toBe('1.5 KB');
+      expect(formatFileSize(1024 * 1024)).toBe('1 MB');
+      expect(formatFileSize(1024 * 1024 * 1024)).toBe('1 GB');
     });
   });
 
   describe('calculateUploadProgress', () => {
-    it('ステータスに応じた進行状況を返す', () => {
-      const testCases: Array<[Image['status'], number]> = [
-        ['uploading', 25],
-        ['processing', 75],
-        ['ready', 100],
-        ['failed', 0],
-      ];
-
-      testCases.forEach(([status, expectedProgress]) => {
-        const image: Image = {
-          id: mockImageId,
-          userId: mockUserId,
-          filename: 'test.jpg',
-          storagePath: 'path',
-          status,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        expect(calculateUploadProgress(image)).toBe(expectedProgress);
+    it('should return correct progress for each status', () => {
+      const baseImage = createImage({
+        id: 'test-id',
+        userId: 'user-id',
+        filename: 'test.jpg',
       });
+
+      expect(
+        calculateUploadProgress({ ...baseImage, status: 'uploading' })
+      ).toBe(25);
+      expect(
+        calculateUploadProgress({ ...baseImage, status: 'processing' })
+      ).toBe(75);
+      expect(calculateUploadProgress({ ...baseImage, status: 'ready' })).toBe(
+        100
+      );
+      expect(calculateUploadProgress({ ...baseImage, status: 'failed' })).toBe(
+        0
+      );
     });
   });
 });

@@ -76,7 +76,34 @@ export class ApiErrorHandler {
   constructor(private logger: Logger) {}
 
   /**
-   * エラーをAPIレスポンスに変換する
+   * エラーをAPIレスポンスに変換する（静的メソッド版）
+   * @param error エラーオブジェクト
+   * @returns Response オブジェクト
+   */
+  static handle(error: unknown): Response {
+    let apiError: ApiError;
+    let status: number;
+
+    if (error instanceof BffError) {
+      apiError = createApiError(error.code, error.message, error.details);
+      status = getStatusFromErrorCode(error.code);
+    } else if (error instanceof Error) {
+      // 予期しないエラー
+      console.error('Unhandled error in BFF layer:', error);
+      apiError = createApiError(ERROR_CODES.INTERNAL_ERROR);
+      status = 500;
+    } else {
+      // 不明なエラー
+      console.error('Unknown error in BFF layer:', error);
+      apiError = createApiError(ERROR_CODES.INTERNAL_ERROR);
+      status = 500;
+    }
+
+    return Response.json(apiError, { status });
+  }
+
+  /**
+   * エラーをAPIレスポンスに変換する（インスタンスメソッド版）
    * @param error エラーオブジェクト
    * @returns Response オブジェクト
    */

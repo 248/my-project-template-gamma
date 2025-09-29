@@ -5,8 +5,8 @@
 
 import type { SupabaseAdapter } from '@template-gamma/adapters/supabase';
 import type { Logger } from '@template-gamma/adapters/logger';
-import { UserServiceImpl } from './user-service.js';
-import type { UserService } from './types.js';
+import { UserServiceImpl } from './user-service';
+import type { UserService } from './types';
 
 export class UserServiceFactory {
   static create(supabaseAdapter: SupabaseAdapter, logger: Logger): UserService {

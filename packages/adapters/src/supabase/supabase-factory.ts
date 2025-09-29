@@ -7,8 +7,27 @@ import { SupabaseAdapterImpl } from './supabase-adapter';
 import { MockSupabaseAdapter } from './mock-supabase-adapter';
 import type { SupabaseAdapter, SupabaseConfig } from './types';
 
-export class SupabaseAdapterFactory {
+export class SupabaseFactory {
   private static mockInstance: MockSupabaseAdapter | null = null;
+
+  /**
+   * 設定に基づいてSupabaseAdapterを作成する
+   */
+  static createFromConfig(config: SupabaseConfig): SupabaseAdapter {
+    // モック用のURLの場合はモックアダプタを返す
+    if (config.url.startsWith('mock://')) {
+      return new MockSupabaseAdapter();
+    }
+
+    // 必須設定の検証
+    if (!config.url || !config.anonKey) {
+      throw new Error(
+        'Supabase configuration is missing. Please provide url and anonKey.'
+      );
+    }
+
+    return new SupabaseAdapterImpl(config);
+  }
 
   /**
    * 環境変数に応じてSupabaseAdapterを作成する

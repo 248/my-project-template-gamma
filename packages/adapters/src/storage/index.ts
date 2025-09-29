@@ -7,4 +7,6 @@ export type {
   StorageFile,
   StorageConfig,
   StorageBucket,
+  UploadOptions,
+  GetSignedUrlOptions,
 } from './types';

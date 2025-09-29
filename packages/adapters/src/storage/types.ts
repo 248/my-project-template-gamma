@@ -3,6 +3,15 @@
  * 要件 11.1-11.5: 画像保存の段階的方針
  */
 
+export interface UploadOptions {
+  contentType?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface GetSignedUrlOptions {
+  expiresIn?: number;
+}
+
 export interface StorageAdapter {
   // ヘルスチェック
   ping(): Promise<boolean>;
@@ -11,13 +20,13 @@ export interface StorageAdapter {
   uploadFile(
     bucket: string,
     path: string,
-    file: File | Buffer,
-    contentType?: string
+    file: File | Buffer | ArrayBuffer,
+    options?: UploadOptions
   ): Promise<string>;
   getSignedUrl(
     bucket: string,
     path: string,
-    expiresIn?: number
+    options?: GetSignedUrlOptions
   ): Promise<string>;
   deleteFile(bucket: string, path: string): Promise<void>;
 
@@ -51,3 +60,6 @@ export const STORAGE_BUCKETS = {
 
 export type StorageBucket =
   (typeof STORAGE_BUCKETS)[keyof typeof STORAGE_BUCKETS];
+
+// 型エクスポート
+export type { UploadOptions, GetSignedUrlOptions };
