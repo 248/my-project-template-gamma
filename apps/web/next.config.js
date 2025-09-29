@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 開発時はstandaloneを無効化（Windows環境でのシンボリックリンク問題回避）
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  // Windows環境でのシンボリックリンク問題回避のため、standaloneを無効化
+  // output: 'standalone',
 
   // 実験的機能の設定
   experimental: {
