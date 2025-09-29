@@ -14,7 +14,12 @@
   "dependencies": {
     "next": "15.5.2",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "zod": "^3.23.8",
+    "@template-gamma/bff": "workspace:*",
+    "@template-gamma/adapters": "workspace:*",
+    "@template-gamma/core": "workspace:*",
+    "@template-gamma/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

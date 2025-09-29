@@ -212,6 +212,101 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/users/me:
+    get:
+      summary: Get current user
+      description: 現在のユーザー情報を取得
+      operationId: getCurrentUser
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Update current user last login
+      description: 現在のユーザーの最終ログイン時刻を更新
+      operationId: updateCurrentUserLastLogin
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User last login updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/me/stats:
+    get:
+      summary: Get current user statistics
+      description: 現在のユーザーの統計情報を取得
+      operationId: getCurrentUserStats
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: inactiveDays
+          in: query
+          description: 非アクティブと判定する日数
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     LivenessResponse:
@@ -399,6 +494,50 @@ components:
           type: boolean
           description: 次のページが存在するか
 
+    UserResponse:
+      type: object
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - lastLoginAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ユーザーID
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: 最終ログイン日時
+
+    UserStatsResponse:
+      type: object
+      required:
+        - ageDays
+        - daysSinceLastLogin
+        - isActive
+      properties:
+        ageDays:
+          type: integer
+          minimum: 0
+          description: 登録からの経過日数
+        daysSinceLastLogin:
+          type: integer
+          minimum: 0
+          description: 最終ログインからの経過日数
+        isActive:
+          type: boolean
+          description: アクティブユーザーかどうか
+
     ErrorResponse:
       type: object
       required:
@@ -428,3 +567,5 @@ tags:
     description: ヘルスチェック関連のAPI
   - name: Images
     description: 画像管理関連のAPI
+  - name: Users
+    description: ユーザー管理関連のAPI

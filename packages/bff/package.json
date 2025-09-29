@@ -9,6 +9,7 @@
     "./health": "./src/health/index.ts",
     "./auth": "./src/auth/index.ts",
     "./images": "./src/images/index.ts",
+    "./user": "./src/user/index.ts",
     "./error-handler": "./src/error-handler.ts"
   },
   "scripts": {

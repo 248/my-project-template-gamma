@@ -7,7 +7,9 @@ import { SupabaseAdapterImpl } from './supabase-adapter';
 import { MockSupabaseAdapter } from './mock-supabase-adapter';
 import type { SupabaseAdapter, SupabaseConfig } from './types';
 
-export class SupabaseFactory {
+export class SupabaseAdapterFactory {
+  private static mockInstance: MockSupabaseAdapter | null = null;
+
   /**
    * 環境変数に応じてSupabaseAdapterを作成する
    */
@@ -16,7 +18,11 @@ export class SupabaseFactory {
       (env?.USE_MOCK_SUPABASE || process.env.USE_MOCK_SUPABASE) === 'true';
 
     if (useMock) {
-      return new MockSupabaseAdapter();
+      // テスト環境では同じインスタンスを再利用
+      if (!this.mockInstance) {
+        this.mockInstance = new MockSupabaseAdapter();
+      }
+      return this.mockInstance;
     }
 
     const config: SupabaseConfig = {
@@ -47,5 +53,12 @@ export class SupabaseFactory {
     shouldFailPing?: boolean;
   }): MockSupabaseAdapter {
     return new MockSupabaseAdapter(options);
+  }
+
+  /**
+   * テスト用のモックインスタンスをリセットする
+   */
+  static resetMockInstance(): void {
+    this.mockInstance = null;
   }
 }

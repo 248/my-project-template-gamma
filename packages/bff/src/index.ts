@@ -40,3 +40,13 @@ export type {
   ImageFile,
   Pagination,
 } from './images/index.js';
+
+// ユーザー管理サービス
+export { UserServiceImpl, UserServiceFactory } from './user/index.js';
+export type {
+  UserService,
+  UserStats,
+  CreateUserRequest,
+  UpdateLastLoginRequest,
+  GetUserStatsRequest,
+} from './user/index.js';

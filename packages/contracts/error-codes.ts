@@ -49,7 +49,7 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 export interface ApiError {
   code: ErrorCode;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -57,7 +57,6 @@ export interface ApiError {
  */
 export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
   // 400 Bad Request
-  [ERROR_CODES.VALIDATION_ERROR]: 400,
   [ERROR_CODES.FILE_TOO_LARGE]: 400,
   [ERROR_CODES.UNSUPPORTED_FILE_TYPE]: 400,
   [ERROR_CODES.INVALID_FILE_FORMAT]: 400,
@@ -78,6 +77,7 @@ export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
   [ERROR_CODES.IMAGE_NOT_FOUND]: 404,
 
   // 422 Unprocessable Entity
+  [ERROR_CODES.VALIDATION_ERROR]: 422,
   [ERROR_CODES.IMAGE_UPLOAD_FAILED]: 422,
   [ERROR_CODES.IMAGE_PROCESSING_FAILED]: 422,
   [ERROR_CODES.IMAGE_DELETE_FAILED]: 422,
@@ -142,7 +142,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 export function createApiError(
   code: ErrorCode,
   message?: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): ApiError {
   return {
     code,
