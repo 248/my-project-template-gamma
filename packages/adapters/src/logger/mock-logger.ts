@@ -87,10 +87,9 @@ export class MockLogger implements Logger {
     childLogger.logs = [...this.logs];
 
     // bindingsをchildLoggerに適用（将来の拡張用）
-    Object.keys(bindings).forEach(() => {
-      // 現在はbindingsを単純に認識するだけ
-      // 将来的にはログにbindingsを含める実装を追加予定
-    });
+    // 現在はbindingsを単純に認識するだけ
+    // 将来的にはログにbindingsを含める実装を追加予定
+    void bindings;
 
     return childLogger;
   }

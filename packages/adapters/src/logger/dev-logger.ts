@@ -12,9 +12,9 @@ export class DevLogger implements Logger {
 
   constructor(config: LoggerConfig) {
     this.config = config;
-    this.logger = pino({
+
+    const pinoConfig: pino.LoggerOptions = {
       level: config.level,
-      transport: config.pretty ? { target: 'pino-pretty' } : undefined,
       base: {
         service: config.service,
         env: config.env,
@@ -33,7 +33,14 @@ export class DevLogger implements Logger {
         censor: '[REDACTED]',
       },
       timestamp: pino.stdTimeFunctions.isoTime,
-    });
+    };
+
+    // pretty が有効な場合のみ transport を設定
+    if (config.pretty) {
+      pinoConfig.transport = { target: 'pino-pretty' };
+    }
+
+    this.logger = pino(pinoConfig);
   }
 
   info(objOrMsg: LogContext | string, msg?: string): void {

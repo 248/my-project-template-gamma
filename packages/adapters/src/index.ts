@@ -25,17 +25,27 @@ export type {
 } from './storage/index';
 
 // Logger
-export { DevLogger, WorkersLogger, LoggerFactory } from './logger/index';
+export {
+  DevLogger,
+  WorkersLogger,
+  LoggerFactory,
+  ErrorLogger,
+} from './logger/index';
 export type {
   Logger,
   LogContext,
   LoggerConfig,
   LogLevel,
+  SerializedError,
 } from './logger/index';
 
 // TraceContext
 export { TraceContext } from './trace-context/index';
-export type { TraceInfo } from './trace-context/index';
+export type { TraceInfo, RequestContext } from './trace-context/index';
+
+// Middleware
+export { createTraceMiddleware, withTraceContext } from './middleware/index';
+export type { TraceMiddlewareConfig } from './middleware/index';
 
 // Import factories for helper functions
 import { SupabaseFactory } from './supabase/index';

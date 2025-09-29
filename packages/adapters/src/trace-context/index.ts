@@ -1,1 +1,5 @@
-export { TraceContext, type TraceInfo } from './trace-context';
+export {
+  TraceContext,
+  type TraceInfo,
+  type RequestContext,
+} from './trace-context';

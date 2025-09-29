@@ -1,6 +1,7 @@
 /**
  * W3C TraceContext 実装
  * 要件 13.4: W3C TraceContext（traceparent）を受継ぎ/発行し、将来の OTLP Exporter 追加を阻害しない命名を使用する
+ * 要件 7.2: requestId、traceId、service、env、version を必須項目として追加
  */
 
 export interface TraceInfo {
@@ -9,6 +10,15 @@ export interface TraceInfo {
   parentId?: string;
   flags: string;
 }
+
+export interface RequestContext {
+  requestId: string;
+  traceInfo: TraceInfo;
+  startTime: Date;
+}
+
+// グローバルなリクエストコンテキスト管理（AsyncLocalStorage の代替）
+let currentRequestContext: RequestContext | null = null;
 
 export class TraceContext {
   /**
@@ -90,5 +100,64 @@ export class TraceContext {
    */
   static generateRequestId(): string {
     return crypto.randomUUID();
+  }
+
+  /**
+   * 新しいリクエストコンテキストを作成し、設定する
+   */
+  static createRequestContext(traceparent?: string): RequestContext {
+    const traceInfo = this.parseTraceparent(traceparent);
+    const requestContext: RequestContext = {
+      requestId: this.generateRequestId(),
+      traceInfo,
+      startTime: new Date(),
+    };
+
+    currentRequestContext = requestContext;
+    return requestContext;
+  }
+
+  /**
+   * 現在のリクエストコンテキストを取得する
+   */
+  static getCurrentRequestContext(): RequestContext | null {
+    return currentRequestContext;
+  }
+
+  /**
+   * リクエストコンテキストをクリアする
+   */
+  static clearRequestContext(): void {
+    currentRequestContext = null;
+  }
+
+  /**
+   * 現在のコンテキストから新しい子スパンを作成する
+   */
+  static createChildSpanFromCurrent(): TraceInfo | null {
+    if (!currentRequestContext) {
+      return null;
+    }
+
+    return this.generateChildSpan(currentRequestContext.traceInfo);
+  }
+
+  /**
+   * ログ用のトレースコンテキストを取得する
+   */
+  static getLogContext(): {
+    requestId?: string;
+    traceId?: string;
+    spanId?: string;
+  } {
+    if (!currentRequestContext) {
+      return {};
+    }
+
+    return {
+      requestId: currentRequestContext.requestId,
+      traceId: currentRequestContext.traceInfo.traceId,
+      spanId: currentRequestContext.traceInfo.spanId,
+    };
   }
 }

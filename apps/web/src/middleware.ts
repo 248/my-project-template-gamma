@@ -1,62 +1,122 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  TraceContext,
+  LoggerFactory,
+  ErrorLogger,
+} from '@template-gamma/adapters';
 
 /**
  * Next.js Middleware
  * 認証チェックとTraceContextの処理を行う
+ * 要件 13.1, 13.4: TraceContext の生成・継承とログへの自動付与
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // TraceContext の処理
-  const traceparent = request.headers.get('traceparent');
-  const response = NextResponse.next();
+  // TraceContext を作成（要件 13.4 準拠）
+  const traceparent = request.headers.get('traceparent') || undefined;
+  const requestContext = TraceContext.createRequestContext(traceparent);
 
-  // TraceContext がない場合は新規生成
-  if (!traceparent) {
-    const traceId = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
-    const spanId = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
-    const newTraceparent = `00-${traceId}-${spanId}-01`;
+  // Logger を初期化
+  const logger = LoggerFactory.createDefault();
+  const errorLogger = new ErrorLogger(logger);
 
-    response.headers.set('traceparent', newTraceparent);
-  }
-
-  // 認証が必要なパスの定義
-  const protectedPaths = ['/home', '/api/diag'];
-  const isProtectedPath = protectedPaths.some((path) =>
-    pathname.startsWith(path)
+  // リクエスト開始ログ（要件 7.2 準拠）
+  logger.info(
+    {
+      method: request.method,
+      url: request.url,
+      userAgent: request.headers.get('user-agent'),
+      ip: request.ip || request.headers.get('x-forwarded-for'),
+    },
+    'Request started'
   );
 
-  if (isProtectedPath) {
-    // 認証チェック実装
-    const accessToken = request.cookies.get('sb-access-token')?.value;
+  try {
+    const response = NextResponse.next();
 
-    if (!accessToken) {
-      // 未認証の場合はログインページにリダイレクト
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+    // レスポンスヘッダーにTraceContextを追加
+    const traceparentHeader = TraceContext.generateTraceparent(
+      requestContext.traceInfo
+    );
+    response.headers.set('traceparent', traceparentHeader);
+    response.headers.set('x-request-id', requestContext.requestId);
 
-    // 環境変数でモック/実際のSupabaseを切り替え
-    const useMock = process.env.USE_MOCK_SUPABASE === 'true';
+    // 認証が必要なパスの定義
+    const protectedPaths = ['/home', '/api/diag'];
+    const isProtectedPath = protectedPaths.some((path) =>
+      pathname.startsWith(path)
+    );
 
-    if (useMock) {
-      // モック実装: mock-access-token以外は無効とする
-      if (accessToken !== 'mock-access-token') {
+    if (isProtectedPath) {
+      // 認証チェック実装
+      const accessToken = request.cookies.get('sb-access-token')?.value;
+
+      if (!accessToken) {
+        // 未認証の場合はログインページにリダイレクト
+        logger.info(
+          { path: pathname, reason: 'no_access_token' },
+          'Redirecting to login - no access token'
+        );
+
         const loginUrl = new URL('/auth/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
-        loginUrl.searchParams.set('error', 'invalid_token');
         return NextResponse.redirect(loginUrl);
       }
-    } else {
-      // 実際のSupabase Auth実装
-      // TODO: Supabase Adapterを使用してトークン検証を実装
+
+      // 環境変数でモック/実際のSupabaseを切り替え
+      const useMock = process.env.USE_MOCK_SUPABASE === 'true';
+
+      if (useMock) {
+        // モック実装: mock-access-token以外は無効とする
+        if (accessToken !== 'mock-access-token') {
+          logger.warn(
+            { path: pathname, reason: 'invalid_mock_token' },
+            'Redirecting to login - invalid mock token'
+          );
+
+          const loginUrl = new URL('/auth/login', request.url);
+          loginUrl.searchParams.set('redirect', pathname);
+          loginUrl.searchParams.set('error', 'invalid_token');
+          return NextResponse.redirect(loginUrl);
+        }
+      } else {
+        // 実際のSupabase Auth実装
+        // TODO: Supabase Adapterを使用してトークン検証を実装
+      }
+
+      logger.info(
+        { path: pathname, authenticated: true },
+        'Authenticated access to protected path'
+      );
     }
 
-    console.log(`Authenticated access to protected path: ${pathname}`);
-  }
+    // リクエスト完了ログ
+    const duration = Date.now() - requestContext.startTime.getTime();
+    logger.info(
+      {
+        method: request.method,
+        url: request.url,
+        duration,
+        status: response.status,
+      },
+      'Request completed'
+    );
 
-  return response;
+    return response;
+  } catch (error) {
+    // エラーログ（要件 7.4 準拠）
+    errorLogger.logUnhandledError(error, {
+      method: request.method,
+      url: request.url,
+      path: pathname,
+    });
+
+    throw error;
+  } finally {
+    // リクエスト終了時にコンテキストをクリア
+    TraceContext.clearRequestContext();
+  }
 }
 
 export const config = {
