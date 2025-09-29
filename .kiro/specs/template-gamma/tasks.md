@@ -92,6 +92,15 @@
   - **Windows環境**: 環境変数でのモード切替確認、ESLintでの依存方向チェック
   - _要件: 17.1, 17.2, 17.4_
 
+- [x] 13.1. モード切替機能の修正（レビュー対応）
+  - レビュー内容：tmp\backend-mode-review.md
+  - **問題1**: MonolithServiceFactoryが依存なしでサービス生成（SupabaseAdapter等が未定義でランタイムエラー）
+  - **問題2**: Node.jsが.tsファイルを直接require不可（ERR_UNKNOWN_FILE_EXTENSION）
+  - **対応1**: packages/bff/src/mode-factory.tsで既存ServiceFactory.create()パターンを活用
+  - **対応2**: package.json validate:modeスクリプトでtsx使用、CI workflow修正
+  - **Windows環境**: 修正後のファクトリーでサービス生成・メソッド呼び出し確認、pnpm validate:mode成功確認
+  - _要件: 17.1, 17.2_
+
 - [ ] 14. テストスイートの実装
   - 単体テスト、統合テスト、E2E テスト（Next.js開発サーバー対象）の実装
   - **Windows環境**: Vitest、Playwright での全テスト実行・合格確認

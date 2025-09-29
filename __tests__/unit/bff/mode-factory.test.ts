@@ -27,7 +27,12 @@ describe('Mode Factory', () => {
   describe('createServiceFactory', () => {
     it('should return MonolithServiceFactory for monolith mode', () => {
       process.env.BACKEND_MODE = 'monolith';
-      const factory = createServiceFactory();
+      const mockEnv = {
+        USE_MOCK_SUPABASE: 'true',
+        USE_MOCK_STORAGE: 'true',
+        NODE_ENV: 'test',
+      };
+      const factory = createServiceFactory(mockEnv);
       expect(factory).toBeInstanceOf(MonolithServiceFactory);
     });
 
@@ -38,7 +43,12 @@ describe('Mode Factory', () => {
     });
 
     it('should return MonolithServiceFactory by default', () => {
-      const factory = createServiceFactory();
+      const mockEnv = {
+        USE_MOCK_SUPABASE: 'true',
+        USE_MOCK_STORAGE: 'true',
+        NODE_ENV: 'test',
+      };
+      const factory = createServiceFactory(mockEnv);
       expect(factory).toBeInstanceOf(MonolithServiceFactory);
     });
   });
@@ -65,7 +75,14 @@ describe('Mode Factory', () => {
 
   describe('MonolithServiceFactory', () => {
     it('should create all services without throwing', () => {
-      const factory = new MonolithServiceFactory();
+      // モック環境変数を設定
+      const mockEnv = {
+        USE_MOCK_SUPABASE: 'true',
+        USE_MOCK_STORAGE: 'true',
+        NODE_ENV: 'test',
+      };
+
+      const factory = new MonolithServiceFactory(mockEnv);
 
       expect(() => factory.createHealthService()).not.toThrow();
       expect(() => factory.createAuthService()).not.toThrow();

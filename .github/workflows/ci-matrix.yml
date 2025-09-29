@@ -67,10 +67,10 @@ jobs:
       - name: Validate Mode Configuration
         run: |
           echo "Testing backend mode: ${{ matrix.backend_mode }}"
-          node -e "
+          npx tsx -e "
             process.env.BACKEND_MODE = '${{ matrix.backend_mode }}';
             process.env.NEXT_PUBLIC_BACKEND_MODE = '${{ matrix.backend_mode }}';
-            const { getBackendMode, validateBackendMode } = require('./packages/contracts/backend-mode.ts');
+            import { getBackendMode, validateBackendMode } from './packages/contracts/backend-mode.ts';
             const mode = getBackendMode();
             console.log('Resolved mode:', mode);
             if (mode !== '${{ matrix.backend_mode }}') {

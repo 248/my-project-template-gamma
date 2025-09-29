@@ -13,11 +13,23 @@ import type { AuthService } from './auth/index.js';
 import type { ImageService } from './images/index.js';
 import type { UserService } from './user/index.js';
 
-// Monolith mode implementations
-import { HealthServiceImpl } from './health/health-service.js';
-import { AuthServiceImpl } from './auth/auth-service.js';
-import { ImageServiceImpl } from './images/image-service.js';
-import { UserServiceImpl } from './user/user-service.js';
+// 既存のファクトリーパターンを活用
+import { HealthServiceFactory } from './health/health-service.js';
+import { AuthServiceFactory } from './auth/auth-service.js';
+import { ImageServiceFactory } from './images/image-service.js';
+import { UserServiceFactory } from './user/user-service-factory.js';
+
+// アダプターファクトリー
+import {
+  SupabaseFactory,
+  StorageFactory,
+  LoggerFactory,
+} from '@template-gamma/adapters';
+import type {
+  SupabaseAdapter,
+  StorageAdapter,
+  Logger,
+} from '@template-gamma/adapters';
 
 // Service mode implementations (将来実装)
 // import { ExternalHealthService } from './external/health-service.js';
@@ -34,22 +46,42 @@ export interface ServiceFactory {
 
 /**
  * Monolith モード用のサービスファクトリー
+ * 既存の*ServiceFactory.create()パターンを活用して依存関係を注入
  */
 export class MonolithServiceFactory implements ServiceFactory {
+  private supabaseAdapter: SupabaseAdapter;
+  private storageAdapter: StorageAdapter;
+  private logger: Logger;
+
+  constructor(env?: Record<string, unknown>) {
+    // 環境変数からアダプターを初期化
+    this.supabaseAdapter = SupabaseFactory.create(env);
+    this.storageAdapter = StorageFactory.create(env);
+    this.logger = LoggerFactory.createDefault(env);
+  }
+
   createHealthService(): HealthService {
-    return new HealthServiceImpl();
+    return HealthServiceFactory.create(
+      this.supabaseAdapter,
+      this.storageAdapter,
+      this.logger
+    );
   }
 
   createAuthService(): AuthService {
-    return new AuthServiceImpl();
+    return AuthServiceFactory.create(this.supabaseAdapter, this.logger);
   }
 
   createImageService(): ImageService {
-    return new ImageServiceImpl();
+    return ImageServiceFactory.create(
+      this.supabaseAdapter,
+      this.storageAdapter,
+      this.logger
+    );
   }
 
   createUserService(): UserService {
-    return new UserServiceImpl();
+    return UserServiceFactory.create(this.supabaseAdapter, this.logger);
   }
 }
 
@@ -57,6 +89,10 @@ export class MonolithServiceFactory implements ServiceFactory {
  * Service モード用のサービスファクトリー（将来実装）
  */
 export class ServiceModeFactory implements ServiceFactory {
+  constructor() {
+    // 将来: 外部サービス用の設定を初期化
+  }
+
   createHealthService(): HealthService {
     // 将来: 外部サービスへのHTTPクライアント実装
     throw new Error(
@@ -86,12 +122,14 @@ export class ServiceModeFactory implements ServiceFactory {
 /**
  * 現在のモードに応じたサービスファクトリーを取得
  */
-export function createServiceFactory(): ServiceFactory {
+export function createServiceFactory(
+  env?: Record<string, unknown>
+): ServiceFactory {
   const mode = getBackendMode();
 
   switch (mode) {
     case BACKEND_MODES.MONOLITH:
-      return new MonolithServiceFactory();
+      return new MonolithServiceFactory(env);
     case BACKEND_MODES.SERVICE:
       return new ServiceModeFactory();
     default:

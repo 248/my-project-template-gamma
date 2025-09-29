@@ -27,7 +27,7 @@
     "openapi:client": "orval --config orval.config.ts",
     "openapi:lint": "redocly lint openapi/openapi.yaml",
     "openapi:check": "pnpm openapi:generate && git diff --exit-code packages/generated/ || (echo 'OpenAPI generated files are out of sync. Run pnpm openapi:generate' && exit 1)",
-    "validate:mode": "node -e \"const { getBackendMode, validateBackendMode } = require('./packages/contracts/backend-mode.ts'); const mode = getBackendMode(); console.log('Current mode:', mode); if (!validateBackendMode(mode)) throw new Error('Invalid mode: ' + mode);\""
+    "validate:mode": "tsx -e \"import { getBackendMode, validateBackendMode } from './packages/contracts/backend-mode.ts'; const mode = getBackendMode(); console.log('Current mode:', mode); if (!validateBackendMode(mode)) throw new Error('Invalid mode: ' + mode);\""
   },
   "devDependencies": {
     "@redocly/cli": "^1.25.0",
@@ -41,6 +41,7 @@
     "openapi-typescript": "^7.4.0",
     "orval": "^7.3.0",
     "prettier": "^3.0.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.6.0",
     "vitest": "^2.0.0"
   },
