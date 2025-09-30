@@ -1,0 +1,571 @@
+openapi: 3.0.3
+info:
+  title: Template Gamma API
+  version: 1.0.0
+  description: Next.js 15.5.2 + React 19.0.0 template for Cloudflare Workers with OpenNext
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://template-gamma.workers.dev
+    description: Production server
+
+paths:
+  /api/healthz:
+    get:
+      summary: Liveness check
+      description: 軽量なヘルスチェック（依存関係に触れない）
+      operationId: getLiveness
+      tags:
+        - Health
+      security: [] # 認証不要の公開エンドポイント
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/readyz:
+    get:
+      summary: Readiness check
+      description: 準備状態確認（Supabase/Storage への到達確認）
+      operationId: getReadiness
+      tags:
+        - Health
+      security: [] # 認証不要の公開エンドポイント
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /api/diag:
+    get:
+      summary: Diagnostics (auth required)
+      description: 詳細診断情報（認証必須）
+      operationId: getDiagnostics
+      tags:
+        - Health
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Diagnostic information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/images:
+    get:
+      summary: List user images
+      description: ユーザーの画像一覧を取得
+      operationId: listImages
+      tags:
+        - Images
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの件数
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Image list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageListResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Upload image
+      description: 画像をアップロード
+      operationId: uploadImage
+      tags:
+        - Images
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: アップロードする画像ファイル
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResponse'
+        '400':
+          description: Invalid file or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/images/{imageId}:
+    delete:
+      summary: Delete image
+      description: 画像を削除
+      operationId: deleteImage
+      tags:
+        - Images
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          description: 削除する画像のID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Image deleted successfully
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - not owner of the image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/me:
+    get:
+      summary: Get current user
+      description: 現在のユーザー情報を取得
+      operationId: getCurrentUser
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Update current user last login
+      description: 現在のユーザーの最終ログイン時刻を更新
+      operationId: updateCurrentUserLastLogin
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User last login updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/me/stats:
+    get:
+      summary: Get current user statistics
+      description: 現在のユーザーの統計情報を取得
+      operationId: getCurrentUserStats
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: inactiveDays
+          in: query
+          description: 非アクティブと判定する日数
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    LivenessResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          description: サービスの生存状態
+        timestamp:
+          type: string
+          format: date-time
+          description: チェック実行時刻
+
+    ReadinessResponse:
+      type: object
+      required:
+        - status
+        - dependencies
+        - version
+        - commit
+        - buildTime
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+          description: サービスの準備状態
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthCheck'
+          description: 依存関係のヘルスチェック結果
+        version:
+          type: string
+          description: アプリケーションバージョン
+        commit:
+          type: string
+          description: Gitコミットハッシュ
+        buildTime:
+          type: string
+          format: date-time
+          description: ビルド時刻
+
+    DiagnosticsResponse:
+      type: object
+      required:
+        - status
+        - dependencies
+        - version
+        - commit
+        - buildTime
+        - diagnostics
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+          description: サービスの診断状態
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthCheck'
+          description: 依存関係のヘルスチェック結果
+        version:
+          type: string
+          description: アプリケーションバージョン
+        commit:
+          type: string
+          description: Gitコミットハッシュ
+        buildTime:
+          type: string
+          format: date-time
+          description: ビルド時刻
+        diagnostics:
+          type: object
+          description: 詳細診断情報
+          properties:
+            memory:
+              type: object
+              properties:
+                used:
+                  type: number
+                  description: 使用メモリ量（MB）
+                total:
+                  type: number
+                  description: 総メモリ量（MB）
+            uptime:
+              type: number
+              description: 稼働時間（秒）
+            requestCount:
+              type: number
+              description: 処理済みリクエスト数
+
+    HealthCheck:
+      type: object
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+          description: チェック対象の名前
+        status:
+          type: string
+          enum: [ok, degraded, down]
+          description: チェック結果
+        latency:
+          type: number
+          description: レスポンス時間（ミリ秒）
+        error:
+          type: string
+          description: エラーメッセージ（エラー時のみ）
+
+    ImageResponse:
+      type: object
+      required:
+        - id
+        - filename
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 画像ID
+        filename:
+          type: string
+          description: ファイル名
+        status:
+          type: string
+          enum: [uploading, processing, ready, failed]
+          description: 画像の処理状態
+        fileSize:
+          type: integer
+          description: ファイルサイズ（バイト）
+        mimeType:
+          type: string
+          description: MIMEタイプ
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    ImageListResponse:
+      type: object
+      required:
+        - images
+        - pagination
+      properties:
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageResponse'
+          description: 画像一覧
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - hasNext
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: 現在のページ番号
+        limit:
+          type: integer
+          minimum: 1
+          description: 1ページあたりの件数
+        total:
+          type: integer
+          minimum: 0
+          description: 総件数
+        hasNext:
+          type: boolean
+          description: 次のページが存在するか
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - lastLoginAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ユーザーID
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: 最終ログイン日時
+
+    UserStatsResponse:
+      type: object
+      required:
+        - ageDays
+        - daysSinceLastLogin
+        - isActive
+      properties:
+        ageDays:
+          type: integer
+          minimum: 0
+          description: 登録からの経過日数
+        daysSinceLastLogin:
+          type: integer
+          minimum: 0
+          description: 最終ログインからの経過日数
+        isActive:
+          type: boolean
+          description: アクティブユーザーかどうか
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: エラーコード
+        message:
+          type: string
+          description: エラーメッセージ
+        details:
+          type: object
+          description: エラーの詳細情報
+          additionalProperties: true
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+      description: Supabase認証クッキー
+
+tags:
+  - name: Health
+    description: ヘルスチェック関連のAPI
+  - name: Images
+    description: 画像管理関連のAPI
+  - name: Users
+    description: ユーザー管理関連のAPI

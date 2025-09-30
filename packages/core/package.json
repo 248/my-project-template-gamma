@@ -1,0 +1,23 @@
+{
+  "name": "@template-gamma/core",
+  "version": "0.1.0",
+  "description": "Core business logic and pure functions for Template Gamma",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./health": "./health.ts",
+    "./user": "./user.ts",
+    "./image": "./image.ts"
+  }
+}

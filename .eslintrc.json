@@ -1,0 +1,109 @@
+{
+  "root": true,
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "es2022": true,
+    "browser": true
+  },
+  "plugins": ["import"],
+  "rules": {
+    "prefer-const": "error",
+    "no-var": "error",
+    "import/no-restricted-paths": [
+      "error",
+      {
+        "zones": [
+          {
+            "target": "./packages/core/**/*",
+            "from": "./packages/!(core)/**/*",
+            "message": "Core package cannot depend on other packages"
+          },
+          {
+            "target": "./packages/bff/**/*",
+            "from": "./apps/**/*",
+            "message": "BFF package cannot depend on Web package"
+          },
+          {
+            "target": "./packages/adapters/**/*",
+            "from": "./packages/bff/**/*",
+            "message": "Adapters package cannot depend on BFF package"
+          },
+          {
+            "target": "./packages/adapters/**/*",
+            "from": "./apps/**/*",
+            "message": "Adapters package cannot depend on Web package"
+          },
+          {
+            "target": "./packages/contracts/**/*",
+            "from": "./packages/!(contracts)/**/*",
+            "message": "Contracts package cannot depend on other packages"
+          },
+          {
+            "target": "./packages/contracts/**/*",
+            "from": "./apps/**/*",
+            "message": "Contracts package cannot depend on Web package"
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint", "import"],
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
+      "files": ["apps/web/app/api/**/route.ts"],
+      "rules": {
+        "import/no-restricted-paths": [
+          "error",
+          {
+            "zones": [
+              {
+                "target": "./apps/web/app/api/**/*",
+                "from": "./packages/core/**/*",
+                "message": "Route Handlers cannot directly import Core package. Use BFF layer instead."
+              },
+              {
+                "target": "./apps/web/app/api/**/*",
+                "from": "./packages/adapters/**/*",
+                "message": "Route Handlers cannot directly import Adapters package. Use BFF layer instead."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "dist/",
+    "build/",
+    "*.js",
+    "packages/generated/api-types.ts",
+    "packages/generated/api-client.ts",
+    "packages/generated/api-client.schemas.ts",
+    "packages/generated/api-mutator.ts",
+    "packages/generated/api-wrapper.ts",
+    "eslint-rules/"
+  ]
+}

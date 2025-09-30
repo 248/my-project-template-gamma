@@ -1,0 +1,123 @@
+name: CI Matrix - Backend Mode Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-backend-modes:
+    name: Test Backend Mode - ${{ matrix.backend_mode }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend_mode: [monolith, service]
+        node-version: [22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set Backend Mode
+        run: echo "BACKEND_MODE=${{ matrix.backend_mode }}" >> $GITHUB_ENV
+
+      - name: Set Next.js Public Backend Mode
+        run: echo "NEXT_PUBLIC_BACKEND_MODE=${{ matrix.backend_mode }}" >> $GITHUB_ENV
+
+      - name: Type Check
+        run: pnpm type-check
+        env:
+          BACKEND_MODE: ${{ matrix.backend_mode }}
+          NEXT_PUBLIC_BACKEND_MODE: ${{ matrix.backend_mode }}
+
+      - name: Lint - Dependency Direction Check
+        run: pnpm lint
+        env:
+          BACKEND_MODE: ${{ matrix.backend_mode }}
+          NEXT_PUBLIC_BACKEND_MODE: ${{ matrix.backend_mode }}
+
+      - name: Test - Unit Tests
+        run: pnpm test
+        env:
+          BACKEND_MODE: ${{ matrix.backend_mode }}
+          NEXT_PUBLIC_BACKEND_MODE: ${{ matrix.backend_mode }}
+
+      - name: Build - Next.js
+        run: pnpm build
+        env:
+          BACKEND_MODE: ${{ matrix.backend_mode }}
+          NEXT_PUBLIC_BACKEND_MODE: ${{ matrix.backend_mode }}
+          SUPABASE_URL: https://dummy.supabase.co
+          SUPABASE_ANON_KEY: dummy-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key
+
+      - name: Validate Mode Configuration
+        run: |
+          echo "Testing backend mode: ${{ matrix.backend_mode }}"
+          npx tsx -e "
+            process.env.BACKEND_MODE = '${{ matrix.backend_mode }}';
+            process.env.NEXT_PUBLIC_BACKEND_MODE = '${{ matrix.backend_mode }}';
+            import { getBackendMode, validateBackendMode } from './packages/contracts/backend-mode.ts';
+            const mode = getBackendMode();
+            console.log('Resolved mode:', mode);
+            if (mode !== '${{ matrix.backend_mode }}') {
+              throw new Error(\`Expected mode ${{ matrix.backend_mode }}, got \${mode}\`);
+            }
+            if (!validateBackendMode(mode)) {
+              throw new Error(\`Invalid mode: \${mode}\`);
+            }
+            console.log('✅ Mode validation passed');
+          "
+
+  dependency-direction-check:
+    name: Dependency Direction Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Dependency Direction Lint
+        run: pnpm lint
+
+      - name: Validate Package Dependencies
+        run: |
+          echo "Checking package.json dependencies..."
+
+          # Core should not depend on other packages
+          if grep -q "@template-gamma/" packages/core/package.json; then
+            echo "❌ Core package has dependencies on other packages"
+            exit 1
+          fi
+
+          # Contracts should not depend on other packages (except external libs)
+          if grep -q "@template-gamma/" packages/contracts/package.json; then
+            echo "❌ Contracts package has dependencies on other packages"
+            exit 1
+          fi
+
+          echo "✅ Package dependency validation passed"

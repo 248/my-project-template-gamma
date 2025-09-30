@@ -1,0 +1,153 @@
+name: OpenNext Smoke Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  opennext-smoke:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend-mode: [monolith, service]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set backend mode
+        run: |
+          echo "BACKEND_MODE=${{ matrix.backend-mode }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_BACKEND_MODE=${{ matrix.backend-mode }}" >> $GITHUB_ENV
+
+      - name: Validate backend mode
+        run: pnpm validate:mode
+
+      - name: Run tests for backend mode
+        run: |
+          if [ "${{ matrix.backend-mode }}" = "monolith" ]; then
+            pnpm test:mode:monolith
+          else
+            pnpm test:mode:service
+          fi
+
+      - name: Build Next.js application
+        run: pnpm --filter web build
+
+      - name: Build with OpenNext Cloudflare adapter
+        run: npx @opennextjs/cloudflare build
+
+      - name: Verify OpenNext build artifacts
+        run: |
+          # .open-next ディレクトリが生成されていることを確認
+          if [ ! -d ".open-next" ]; then
+            echo "Error: .open-next directory not found"
+            exit 1
+          fi
+
+          # 必要なファイルが存在することを確認
+          if [ ! -f ".open-next/worker.js" ]; then
+            echo "Error: .open-next/worker.js not found"
+            exit 1
+          fi
+
+          if [ ! -d ".open-next/assets" ]; then
+            echo "Error: .open-next/assets directory not found"
+            exit 1
+          fi
+
+          echo "OpenNext build artifacts verified successfully"
+
+      - name: Dry run Wrangler deploy
+        run: npx wrangler deploy --dry-run
+        env:
+          # Wranglerの設定検証のみ（実際のデプロイは行わない）
+          CLOUDFLARE_API_TOKEN: 'dummy-token-for-dry-run'
+
+      - name: Validate wrangler.jsonc configuration
+        run: |
+          # wrangler.jsonc の設定が正しいことを確認
+          if [ ! -f "wrangler.jsonc" ]; then
+            echo "Error: wrangler.jsonc not found"
+            exit 1
+          fi
+
+          # JSONCファイルの構文チェック
+          node -e "
+            const fs = require('fs');
+            const content = fs.readFileSync('wrangler.jsonc', 'utf8');
+            // JSONCのコメントを除去してJSONとしてパース
+            const jsonContent = content.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+            try {
+              const config = JSON.parse(jsonContent);
+              console.log('wrangler.jsonc syntax is valid');
+              
+              // 必須フィールドの確認
+              if (!config.name) throw new Error('name field is required');
+              if (!config.main) throw new Error('main field is required');
+              if (!config.compatibility_date) throw new Error('compatibility_date field is required');
+              
+              console.log('wrangler.jsonc configuration is valid');
+            } catch (error) {
+              console.error('wrangler.jsonc validation failed:', error.message);
+              process.exit(1);
+            }
+          "
+
+      - name: Check OpenNext compatibility
+        run: |
+          # OpenNext Cloudflare アダプタの互換性確認
+          echo "Checking OpenNext Cloudflare adapter compatibility..."
+
+          # Node.js ランタイムが使用されていることを確認
+          if grep -q '"runtime": "edge"' apps/web/src/app/**/*.ts 2>/dev/null; then
+            echo "Error: Edge runtime detected. OpenNext Cloudflare adapter requires Node.js runtime."
+            exit 1
+          fi
+
+          # compatibility_date が適切に設定されていることを確認
+          if ! grep -q '"compatibility_date": "2025-09-23"' wrangler.jsonc; then
+            echo "Warning: compatibility_date should be set to 2025-09-23 or later"
+          fi
+
+          # nodejs_compat フラグが有効になっていることを確認
+          if ! grep -q '"nodejs_compat"' wrangler.jsonc; then
+            echo "Error: nodejs_compat compatibility flag is required"
+            exit 1
+          fi
+
+          echo "OpenNext compatibility check passed"
+
+      - name: Report build summary
+        run: |
+          echo "## OpenNext Smoke Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend Mode**: ${{ matrix.backend-mode }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Next.js Build**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "- **OpenNext Build**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "- **Wrangler Config**: ✅ Valid" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run Deploy**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+
+          # ビルド成果物のサイズ情報
+          if [ -f ".open-next/worker.js" ]; then
+            WORKER_SIZE=$(du -h .open-next/worker.js | cut -f1)
+            echo "- **Worker Size**: $WORKER_SIZE" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -d ".open-next/assets" ]; then
+            ASSETS_SIZE=$(du -sh .open-next/assets | cut -f1)
+            echo "- **Assets Size**: $ASSETS_SIZE" >> $GITHUB_STEP_SUMMARY
+          fi

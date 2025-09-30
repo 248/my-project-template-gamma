@@ -30,25 +30,25 @@ graph TB
         CDN[Cloudflare CDN]
         Worker[Cloudflare Worker<br/>Next.js + OpenNext]
     end
-    
+
     subgraph "Cloudflare Services"
         KV[Cloudflare KV]
         Queues[Cloudflare Queues]
         D1[Cloudflare D1]
         Images[Cloudflare Images]
     end
-    
+
     subgraph "Supabase"
         Auth[Supabase Auth]
         DB[Postgres + RLS]
         Storage[Supabase Storage]
     end
-    
+
     subgraph "External Services"
         Sentry[Sentry Free]
         GitHub[GitHub Actions]
     end
-    
+
     User --> CDN
     CDN --> Worker
     Worker --> Auth
@@ -71,32 +71,32 @@ graph TB
         API[API Routes<br/>Thin I/O Layer]
         MW[Middleware<br/>Auth Check]
     end
-    
+
     subgraph "packages/bff"
         BFF[BFF Layer<br/>API Contract Implementation]
     end
-    
+
     subgraph "packages/core"
         Core[Core Logic<br/>Pure Business Functions]
     end
-    
+
     subgraph "packages/adapters"
         Supabase[Supabase Adapter]
         Storage[Storage Adapter]
         Logger[Logger Adapter]
         Cache[Cache Adapter]
     end
-    
+
     subgraph "packages/contracts"
         ErrorCodes[Error Codes]
         Types[Generated Types]
     end
-    
+
     subgraph "packages/generated"
         APITypes[API Types<br/>from OpenAPI]
         APIClient[API Client<br/>from OpenAPI]
     end
-    
+
     UI --> API
     API --> BFF
     BFF --> Core
@@ -117,13 +117,13 @@ graph LR
         WebM[apps/web] --> BFFM[packages/bff]
         BFFM --> CoreM[packages/core]
     end
-    
+
     subgraph "Service Mode"
         WebS[apps/web] --> ClientS[Generated Client]
         ClientS --> ExtService[External Service<br/>Hono/Go/Python]
         ExtService --> CoreS[packages/core]
     end
-    
+
     EnvVar[BACKEND_MODE=monolith|service] --> WebM
     EnvVar --> WebS
 ```
@@ -161,7 +161,7 @@ export default function HealthPage() {
 export async function GET() {
   return Response.json({
     status: 'ok',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -224,15 +224,15 @@ export class HealthServiceImpl implements HealthService {
   async checkReadiness(): Promise<ReadinessResult> {
     const checks = await Promise.allSettled([
       this.supabaseAdapter.ping(),
-      this.storageAdapter.ping()
+      this.storageAdapter.ping(),
     ]);
-    
+
     return {
       status: this.determineStatus(checks),
       dependencies: this.formatDependencies(checks),
       version: process.env.APP_VERSION,
       commit: process.env.GIT_COMMIT,
-      buildTime: process.env.BUILD_TIME
+      buildTime: process.env.BUILD_TIME,
     };
   }
 }
@@ -268,7 +268,7 @@ export function updateLastLogin(user: User): User {
   return {
     ...user,
     lastLoginAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 }
 
@@ -294,7 +294,9 @@ export interface HealthCheck {
   error?: string;
 }
 
-export function aggregateHealthStatus(checks: HealthCheck[]): 'ok' | 'degraded' | 'down' {
+export function aggregateHealthStatus(
+  checks: HealthCheck[]
+): 'ok' | 'degraded' | 'down' {
   // ヘルスチェック結果の集約ロジック
 }
 ```
@@ -305,11 +307,11 @@ export function aggregateHealthStatus(checks: HealthCheck[]): 'ok' | 'degraded' 
 // packages/adapters/supabase-server.ts
 export class SupabaseServerAdapter {
   private client: SupabaseClient;
-  
+
   constructor(url: string, serviceRoleKey: string) {
     this.client = createClient(url, serviceRoleKey);
   }
-  
+
   async ping(): Promise<boolean> {
     try {
       const { error } = await this.client.from('_health').select('1').limit(1);
@@ -318,11 +320,11 @@ export class SupabaseServerAdapter {
       return false;
     }
   }
-  
+
   async createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): Promise<User> {
     // RLS を考慮したユーザー作成
   }
-  
+
   async updateLastLogin(userId: string): Promise<void> {
     // last_login_at の更新
   }
@@ -347,16 +349,20 @@ export class CloudflareImagesAdapter implements StorageAdapter {
 // packages/adapters/logger.ts
 export class WorkersLogger {
   constructor(private env: any) {}
-  
+
   info(obj: any, msg?: string) {
     // Workers: 構造化 JSON を console.log で出力（Workers Logs/Logpush で収集）
-    console.log(JSON.stringify(this.addTraceContext({ level: 'info', msg, ...obj })));
+    console.log(
+      JSON.stringify(this.addTraceContext({ level: 'info', msg, ...obj }))
+    );
   }
-  
+
   error(obj: any, msg?: string) {
-    console.error(JSON.stringify(this.addTraceContext({ level: 'error', msg, ...obj })));
+    console.error(
+      JSON.stringify(this.addTraceContext({ level: 'error', msg, ...obj }))
+    );
   }
-  
+
   private addTraceContext(obj: any) {
     return {
       ...obj,
@@ -365,15 +371,15 @@ export class WorkersLogger {
       service: 'template-gamma',
       env: this.env.NODE_ENV || process.env.NODE_ENV,
       version: this.env.APP_VERSION || process.env.APP_VERSION,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
-  
+
   private getRequestId(): string {
     // TraceContext から requestId を取得
     return crypto.randomUUID();
   }
-  
+
   private getTraceId(): string {
     // W3C TraceContext の traceparent ヘッダから traceId を抽出
     // 形式: 00-<trace-id>-<parent-id>-<trace-flags>
@@ -384,22 +390,27 @@ export class WorkersLogger {
 // 開発環境用（Node.js ローカル）
 export class DevLogger {
   private logger: pino.Logger;
-  
+
   constructor() {
     this.logger = pino({
       level: process.env.LOG_LEVEL || 'info',
       transport: { target: 'pino-pretty' }, // dev 専用
       redact: {
-        paths: ['req.headers.authorization', 'req.headers.cookie', 'password', 'token'],
-        censor: '[REDACTED]'
-      }
+        paths: [
+          'req.headers.authorization',
+          'req.headers.cookie',
+          'password',
+          'token',
+        ],
+        censor: '[REDACTED]',
+      },
     });
   }
-  
+
   info(obj: any, msg?: string) {
     this.logger.info(obj, msg);
   }
-  
+
   error(obj: any, msg?: string) {
     this.logger.error(obj, msg);
   }
@@ -478,11 +489,11 @@ CREATE INDEX idx_images_user_id_created_at ON images(user_id, created_at DESC);
 ```typescript
 // Storage バケット設定
 const BUCKETS = {
-  USER_IMAGES: 'user-images'
+  USER_IMAGES: 'user-images',
 } as const;
 
 // ストレージパス設計（userId をフォルダ名に含める）
-const getImagePath = (userId: string, imageId: string, filename: string) => 
+const getImagePath = (userId: string, imageId: string, filename: string) =>
   `${userId}/${imageId}/${filename}`;
 ```
 
@@ -748,23 +759,23 @@ export const ERROR_CODES = {
   AUTH_REQUIRED: 'AUTH_REQUIRED',
   AUTH_INVALID_TOKEN: 'AUTH_INVALID_TOKEN',
   AUTH_EXPIRED: 'AUTH_EXPIRED',
-  
+
   // 認可関連
   FORBIDDEN: 'FORBIDDEN',
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
-  
+
   // バリデーション関連
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   FILE_TOO_LARGE: 'FILE_TOO_LARGE',
   UNSUPPORTED_FILE_TYPE: 'UNSUPPORTED_FILE_TYPE',
-  
+
   // システム関連
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED'
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
 } as const;
 
-export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
 export interface ApiError {
   code: ErrorCode;
@@ -780,31 +791,34 @@ export interface ApiError {
 export class ApiErrorHandler {
   static handle(error: unknown): Response {
     const logger = new PinoLogger();
-    
+
     if (error instanceof ValidationError) {
       return this.createErrorResponse(422, {
         code: ERROR_CODES.VALIDATION_ERROR,
         message: 'Validation failed',
-        details: error.details
+        details: error.details,
       });
     }
-    
+
     if (error instanceof AuthError) {
       return this.createErrorResponse(401, {
         code: ERROR_CODES.AUTH_REQUIRED,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
-    
+
     // 予期しないエラー
     logger.error({ err: error }, 'Unhandled error');
     return this.createErrorResponse(500, {
       code: ERROR_CODES.INTERNAL_ERROR,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
-  
-  private static createErrorResponse(status: number, error: ApiError): Response {
+
+  private static createErrorResponse(
+    status: number,
+    error: ApiError
+  ): Response {
     return Response.json(error, { status });
   }
 }
@@ -820,9 +834,9 @@ export class ApiErrorHandler {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "template-gamma",
   "main": ".open-next/worker.js",
-  "assets": { 
-    "directory": ".open-next/assets", 
-    "binding": "ASSETS" 
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
   },
   "compatibility_date": "2025-09-23",
   "compatibility_flags": [
@@ -830,8 +844,8 @@ export class ApiErrorHandler {
     "nodejs_compat_populate_process_env"
   ],
   "kv_namespaces": [
-    { 
-      "binding": "NEXT_CACHE_WORKERS_KV", 
+    {
+      "binding": "NEXT_CACHE_WORKERS_KV",
       "id": "your-kv-namespace-id",
       "preview_id": "your-preview-kv-namespace-id"
     }
@@ -865,7 +879,7 @@ wrangler secret put SENTRY_DSN
 
 ```typescript
 // packages/adapters/sentry.ts
-import * as Sentry from "@sentry/cloudflare";
+import * as Sentry from '@sentry/cloudflare';
 
 export function initSentry(env: any) {
   Sentry.init({
@@ -880,7 +894,7 @@ export function initSentry(env: any) {
         delete event.request.headers['cookie'];
       }
       return event;
-    }
+    },
   });
 }
 ```
@@ -906,30 +920,33 @@ wrangler deploy
 ```typescript
 // packages/adapters/trace-context.ts
 export class TraceContext {
-  static parseTraceparent(traceparent?: string): { traceId: string; spanId: string } {
+  static parseTraceparent(traceparent?: string): {
+    traceId: string;
+    spanId: string;
+  } {
     if (!traceparent) {
       return {
         traceId: crypto.randomUUID().replace(/-/g, '').substring(0, 32),
-        spanId: crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+        spanId: crypto.randomUUID().replace(/-/g, '').substring(0, 16),
       };
     }
-    
+
     // W3C TraceContext 形式: 00-<trace-id>-<parent-id>-<trace-flags>
     const parts = traceparent.split('-');
     if (parts.length === 4) {
       return {
         traceId: parts[1],
-        spanId: parts[2]
+        spanId: parts[2],
       };
     }
-    
+
     // フォールバック
     return {
       traceId: crypto.randomUUID().replace(/-/g, '').substring(0, 32),
-      spanId: crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+      spanId: crypto.randomUUID().replace(/-/g, '').substring(0, 16),
     };
   }
-  
+
   static generateTraceparent(traceId: string, spanId: string): string {
     return `00-${traceId}-${spanId}-01`;
   }
@@ -966,18 +983,18 @@ describe('aggregateHealthStatus', () => {
   it('should return ok when all checks are ok', () => {
     const checks = [
       { name: 'db', status: 'ok' as const },
-      { name: 'storage', status: 'ok' as const }
+      { name: 'storage', status: 'ok' as const },
     ];
-    
+
     expect(aggregateHealthStatus(checks)).toBe('ok');
   });
-  
+
   it('should return degraded when some checks are degraded', () => {
     const checks = [
       { name: 'db', status: 'ok' as const },
-      { name: 'storage', status: 'degraded' as const }
+      { name: 'storage', status: 'degraded' as const },
     ];
-    
+
     expect(aggregateHealthStatus(checks)).toBe('degraded');
   });
 });
@@ -989,19 +1006,19 @@ import { testClient } from '../../utils/test-client';
 describe('/api/readyz', () => {
   it('should return readiness status', async () => {
     const response = await testClient.get('/api/readyz');
-    
+
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       status: expect.stringMatching(/^(ok|degraded|down)$/),
       dependencies: expect.arrayContaining([
         expect.objectContaining({
           name: expect.any(String),
-          status: expect.stringMatching(/^(ok|degraded|down)$/)
-        })
+          status: expect.stringMatching(/^(ok|degraded|down)$/),
+        }),
       ]),
       version: expect.any(String),
       commit: expect.any(String),
-      buildTime: expect.any(String)
+      buildTime: expect.any(String),
     });
   });
 });
@@ -1013,19 +1030,19 @@ test('complete auth flow', async ({ page }) => {
   // トップページ
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'ログイン' })).toBeVisible();
-  
+
   // ログイン（認証セッション再利用パターン）
   await page.getByRole('button', { name: 'ログイン' }).click();
   // OAuth フローをモック（Playwright の認証セッション再利用を活用）
-  
+
   // ホームページ
   await expect(page).toHaveURL('/home');
   await expect(page.getByText('ヘルスチェック実行')).toBeVisible();
-  
+
   // ヘルスチェック実行
   await page.getByRole('button', { name: 'ヘルスチェック実行' }).click();
   await expect(page.getByText(/Status: (ok|degraded|down)/)).toBeVisible();
-  
+
   // ログアウト
   await page.getByRole('button', { name: 'ログアウト' }).click();
   await expect(page).toHaveURL('/');
@@ -1041,9 +1058,9 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json'
+        storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
     },
@@ -1061,14 +1078,14 @@ export const mockSupabaseAdapter = {
   ping: vi.fn().mockResolvedValue(true),
   createUser: vi.fn(),
   updateLastLogin: vi.fn(),
-  getCurrentUser: vi.fn()
+  getCurrentUser: vi.fn(),
 };
 
 export const mockStorageAdapter = {
   ping: vi.fn().mockResolvedValue(true),
   uploadFile: vi.fn(),
   getSignedUrl: vi.fn(),
-  deleteFile: vi.fn()
+  deleteFile: vi.fn(),
 };
 
 // MSW v2 を使用した API モック（Next.js 15 対応）
@@ -1081,20 +1098,20 @@ export const server = setupServer(
       status: 'ok',
       dependencies: [
         { name: 'supabase', status: 'ok' },
-        { name: 'storage', status: 'ok' }
+        { name: 'storage', status: 'ok' },
       ],
       version: '1.0.0',
       commit: 'abc123',
-      buildTime: '2024-01-01T00:00:00Z'
+      buildTime: '2024-01-01T00:00:00Z',
     });
   }),
-  
+
   // Supabase Auth モック
   http.post('https://your-project.supabase.co/auth/v1/token', () => {
     return HttpResponse.json({
       access_token: 'mock-access-token',
       refresh_token: 'mock-refresh-token',
-      user: { id: 'mock-user-id', email: 'test@example.com' }
+      user: { id: 'mock-user-id', email: 'test@example.com' },
     });
   })
 );
