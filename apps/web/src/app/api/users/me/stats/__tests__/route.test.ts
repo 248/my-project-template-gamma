@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
 import { GET as getUserGET } from '../../route';
-import { SupabaseAdapterFactory } from '@template-gamma/adapters/supabase';
+import { SupabaseFactory } from '@template-gamma/adapters/supabase';
 
 describe('/api/users/me/stats', () => {
   const testUserId = '550e8400-e29b-41d4-a716-446655440000';
@@ -22,7 +22,7 @@ describe('/api/users/me/stats', () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
     // モックインスタンスをリセット
-    SupabaseAdapterFactory.resetMockInstance();
+    SupabaseFactory.resetMockInstance();
   });
 
   describe('GET /api/users/me/stats', () => {

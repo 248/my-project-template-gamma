@@ -6,13 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { UserServiceFactory } from '@template-gamma/bff/user';
-import { SupabaseAdapterFactory } from '@template-gamma/adapters/supabase';
-import { LoggerFactory } from '@template-gamma/adapters/logger';
 import {
+  ServiceFactory,
   createErrorResponse,
-  ValidationError,
-  NotFoundError,
+  BffValidationError,
 } from '@template-gamma/bff';
 
 // クエリパラメータスキーマ
@@ -42,16 +39,8 @@ const UserStatsResponseSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const logger = LoggerFactory.create({
-      level: 'info',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    // 認証情報を取得
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       return NextResponse.json(
         { code: 'AUTH_REQUIRED', message: 'Authentication required' },
@@ -76,14 +65,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { inactiveDays } = queryResult.data;
+    // inactiveDaysパラメータは将来の拡張用（現在は未使用）
+    // const { inactiveDays } = queryResult.data;
 
-    logger.info({ userId, inactiveDays }, 'Getting user stats');
-
-    // サービス初期化（テスト環境ではモックを使用）
-    const supabaseAdapter = SupabaseAdapterFactory.create(process.env);
-
-    const userService = UserServiceFactory.create(supabaseAdapter, logger);
+    // BFFファクトリーからサービスを取得（層違反を防ぐ）
+    const userService = ServiceFactory.createUserService();
 
     // ユーザー統計情報を取得
     const stats = await userService.getUserStats(userId);
@@ -98,29 +84,10 @@ export async function GET(request: NextRequest) {
     // バリデーション
     const validatedResponse = UserStatsResponseSchema.parse(response);
 
-    logger.info(
-      { userId, stats: validatedResponse },
-      'User stats retrieved successfully'
-    );
-
     return NextResponse.json(validatedResponse);
   } catch (error) {
-    const errorLogger = LoggerFactory.create({
-      level: 'error',
-      service: 'template-gamma',
-      env: process.env.NODE_ENV || 'development',
-      version: process.env.APP_VERSION || '1.0.0',
-      pretty: process.env.NODE_ENV === 'development',
-    });
-
-    errorLogger.error({ err: error }, 'Failed to get user stats');
-
-    if (error instanceof ValidationError) {
-      return createErrorResponse(error.code, error.message, error.details);
-    }
-
-    if (error instanceof NotFoundError) {
-      return createErrorResponse(error.code, error.message);
+    if (error instanceof BffValidationError) {
+      return createErrorResponse('VALIDATION_ERROR', error.message);
     }
 
     return createErrorResponse('INTERNAL_ERROR', 'Internal server error');
