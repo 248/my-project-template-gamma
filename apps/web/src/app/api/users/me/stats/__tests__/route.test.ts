@@ -1,7 +1,5 @@
 /**
- * ユーザー統計情報API のテスト
- * Windows環境でのモックデータベースでのCRUD操作確認
- */
+ * ユーザー統計情報API のチE��チE * Windows環墁E��のモチE��チE�Eタベ�EスでのCRUD操作確誁E */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
@@ -21,7 +19,7 @@ describe('/api/users/me/stats', () => {
     process.env.SUPABASE_ANON_KEY = 'test-anon-key';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
-    // モックインスタンスをリセット
+    // モチE��インスタンスをリセチE��
     SupabaseFactory.resetMockInstance();
   });
 
@@ -33,7 +31,7 @@ describe('/api/users/me/stats', () => {
         {
           method: 'GET',
           headers: {
-            'x-user-id': testUserId,
+            'x-authenticated-user-id': testUserId,
           },
         }
       );
@@ -45,7 +43,7 @@ describe('/api/users/me/stats', () => {
         {
           method: 'GET',
           headers: {
-            'x-user-id': testUserId,
+            'x-authenticated-user-id': testUserId,
           },
         }
       );
@@ -62,7 +60,7 @@ describe('/api/users/me/stats', () => {
         isActive: expect.any(Boolean),
       });
 
-      // 作成直後なので経過日数は0
+      // 作�E直後なので経過日数は0
       expect(data.ageDays).toBe(0);
       expect(data.daysSinceLastLogin).toBe(0);
       expect(data.isActive).toBe(true);
@@ -75,7 +73,7 @@ describe('/api/users/me/stats', () => {
         {
           method: 'GET',
           headers: {
-            'x-user-id': testUserId,
+            'x-authenticated-user-id': testUserId,
           },
         }
       );
@@ -86,7 +84,7 @@ describe('/api/users/me/stats', () => {
         {
           method: 'GET',
           headers: {
-            'x-user-id': testUserId,
+            'x-authenticated-user-id': testUserId,
           },
         }
       );
@@ -103,11 +101,10 @@ describe('/api/users/me/stats', () => {
         isActive: expect.any(Boolean),
       });
 
-      // 作成直後なのでアクティブ
-      expect(data.isActive).toBe(true);
+      // 作�E直後なのでアクチE��チE      expect(data.isActive).toBe(true);
     });
 
-    it('未認証の場合は401エラーを返す', async () => {
+    it('未認証の場合�E401エラーを返す', async () => {
       // Arrange
       const request = new NextRequest(
         'http://localhost:3000/api/users/me/stats',
@@ -128,14 +125,14 @@ describe('/api/users/me/stats', () => {
       });
     });
 
-    it('無効なユーザーIDの場合は422エラーを返す', async () => {
+    it('無効なユーザーIDの場合�E422エラーを返す', async () => {
       // Arrange
       const request = new NextRequest(
         'http://localhost:3000/api/users/me/stats',
         {
           method: 'GET',
           headers: {
-            'x-user-id': 'invalid-uuid',
+            'x-authenticated-user-id': 'invalid-uuid',
           },
         }
       );
@@ -149,14 +146,14 @@ describe('/api/users/me/stats', () => {
       expect(data.code).toBe('VALIDATION_ERROR');
     });
 
-    it.skip('無効なクエリパラメータの場合は422エラーを返す', async () => {
-      // Arrange - まずユーザーを作成
+    it.skip('無効なクエリパラメータの場合�E422エラーを返す', async () => {
+      // Arrange - まずユーザーを作�E
       const createUserRequest = new NextRequest(
         'http://localhost:3000/api/users/me',
         {
           method: 'GET',
           headers: {
-            'x-user-id': testUserId,
+            'x-authenticated-user-id': testUserId,
           },
         }
       );
@@ -164,9 +161,8 @@ describe('/api/users/me/stats', () => {
 
       const invalidQueries = [
         'inactiveDays=0', // 最小値未満
-        'inactiveDays=400', // 最大値超過
-        'inactiveDays=abc', // 数値以外
-        'inactiveDays=-5', // 負の値
+        'inactiveDays=400', // 最大値趁E��
+        'inactiveDays=abc', // 数値以夁E        'inactiveDays=-5', // 負の値
       ];
 
       for (const query of invalidQueries) {
@@ -175,7 +171,7 @@ describe('/api/users/me/stats', () => {
           {
             method: 'GET',
             headers: {
-              'x-user-id': testUserId,
+              'x-authenticated-user-id': testUserId,
             },
           }
         );
@@ -190,15 +186,15 @@ describe('/api/users/me/stats', () => {
       }
     });
 
-    it.skip('存在しないユーザーの場合は404エラーを返す', async () => {
-      // Arrange - 有効なUUIDだが存在しないユーザーID
+    it.skip('存在しなぁE��ーザーの場合�E404エラーを返す', async () => {
+      // Arrange - 有効なUUIDだが存在しなぁE��ーザーID
       const nonExistentUserId = '550e8400-e29b-41d4-a716-446655440001';
       const request = new NextRequest(
         'http://localhost:3000/api/users/me/stats',
         {
           method: 'GET',
           headers: {
-            'x-user-id': nonExistentUserId,
+            'x-authenticated-user-id': nonExistentUserId,
           },
         }
       );

@@ -47,14 +47,14 @@ export async function GET() {
 
     // 実際のSupabase Auth実装
     // TODO: Supabase Adapterを使用してユーザー情報を取得
-
-    return NextResponse.json({
-      user: {
-        id: 'real-user-id',
-        email: 'real@example.com',
-        lastLoginAt: new Date().toISOString(),
+    // 暫定措置: 未実装のため501エラーでフェイルクローズ
+    return NextResponse.json(
+      {
+        code: 'NOT_IMPLEMENTED',
+        message: 'Supabase authentication not yet implemented',
       },
-    });
+      { status: 501 }
+    );
   } catch (error) {
     // 構造化ログでエラーを記録
     const logger = createLogger();

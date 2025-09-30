@@ -59,7 +59,7 @@ export class ErrorMiddleware {
       method: request.method,
       url: request.url,
       userAgent: request.headers.get('user-agent'),
-      userId: request.headers.get('x-user-id'),
+      userId: request.headers.get('x-authenticated-user-id'),
     };
 
     // バリデーションエラー
@@ -207,8 +207,8 @@ export function withAuthAndErrorHandling(
   options?: ErrorMiddlewareOptions
 ): ApiHandler {
   return withErrorHandling(async (request: NextRequest) => {
-    // 認証チェック（簡易版 - 実際の実装では middleware で処理）
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       throw new AuthError(ERROR_CODES.AUTH_REQUIRED, 'Authentication required');
     }
@@ -232,7 +232,7 @@ export function withCorsAndErrorHandling(
   const {
     origin = '*',
     methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    headers = ['Content-Type', 'Authorization', 'X-User-ID'],
+    headers = ['Content-Type', 'Authorization', 'X-Authenticated-User-ID'],
   } = corsOptions;
 
   return withErrorHandling(async (request: NextRequest) => {

@@ -1,12 +1,11 @@
 /**
- * エラーミドルウェアのテスト
- * 要件 5.5: API エラーが発生した時 THEN システムはコード + メッセージ形式で返却する
+ * エラーミドルウェアのチE��チE * 要件 5.5: API エラーが発生した時 THEN シスチE��はコーチE+ メチE��ージ形式で返却する
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
 
-// Next.jsのモック
+// Next.jsのモチE��
 class MockNextRequest {
   public method: string;
   public url: string;
@@ -209,7 +208,7 @@ describe('ErrorMiddleware', () => {
       const body = await response.json();
       expect(body).toEqual({
         code: ERROR_CODES.INTERNAL_ERROR,
-        message: '内部サーバーエラーが発生しました',
+        message: '冁E��サーバ�Eエラーが発生しました',
       });
       expect(mockLogger.error).toHaveBeenCalled();
     });
@@ -280,7 +279,7 @@ describe('withAuthAndErrorHandling', () => {
     const wrappedHandler = withAuthAndErrorHandling(handler);
 
     const request = new MockNextRequest('http://localhost/test', {
-      headers: { 'x-user-id': 'user123' },
+      headers: { 'x-authenticated-user-id': 'user123' },
     }) as NextRequest;
     const response = await wrappedHandler(request);
 
@@ -356,7 +355,7 @@ describe('withRateLimitAndErrorHandling', () => {
       headers: { 'x-forwarded-for': '192.168.1.1' },
     }) as NextRequest;
 
-    // 5回のリクエストは成功するはず
+    // 5回のリクエストが成功するはず
     for (let i = 0; i < 5; i++) {
       const response = await wrappedHandler(request);
       expect(response.status).toBe(200);
@@ -374,14 +373,13 @@ describe('withRateLimitAndErrorHandling', () => {
       headers: { 'x-forwarded-for': '192.168.1.1' },
     }) as NextRequest;
 
-    // 最初の2回は成功
+    // 最初�E2回�E成功
     for (let i = 0; i < 2; i++) {
       const response = await wrappedHandler(request);
       expect(response.status).toBe(200);
     }
 
-    // 3回目は制限に引っかかる
-    const response = await wrappedHandler(request);
+    // 3回目は制限に引っかかめE    const response = await wrappedHandler(request);
     expect(response.status).toBe(429);
     const body = await response.json();
     expect(body.code).toBe(ERROR_CODES.RATE_LIMIT_EXCEEDED);
@@ -392,15 +390,15 @@ describe('withRateLimitAndErrorHandling', () => {
     const wrappedHandler = withRateLimitAndErrorHandling(handler, {
       maxRequests: 1,
       windowMs: 60000,
-      keyGenerator: (req) => req.headers.get('x-user-id') || 'anonymous',
+      keyGenerator: (req) => req.headers.get('x-authenticated-user-id') || 'anonymous',
     });
 
-    // 異なるユーザーIDでのリクエストは独立してカウントされる
+    // 異なるユーザーIDでのリクエスト�E独立してカウントされる
     const request1 = new MockNextRequest('http://localhost/test', {
-      headers: { 'x-user-id': 'user1' },
+      headers: { 'x-authenticated-user-id': 'user1' },
     }) as NextRequest;
     const request2 = new MockNextRequest('http://localhost/test', {
-      headers: { 'x-user-id': 'user2' },
+      headers: { 'x-authenticated-user-id': 'user2' },
     }) as NextRequest;
 
     const response1 = await wrappedHandler(request1);
@@ -409,14 +407,13 @@ describe('withRateLimitAndErrorHandling', () => {
     expect(response1.status).toBe(200);
     expect(response2.status).toBe(200);
 
-    // 同じユーザーの2回目のリクエストは制限される
+    // 同じユーザーの2回目のリクエスト�E制限される
     const response3 = await wrappedHandler(request1);
     expect(response3.status).toBe(429);
   });
 });
 
-// 統合テスト
-describe('Integration Tests', () => {
+// 統合テスチEdescribe('Integration Tests', () => {
   it('should handle complex error scenarios', async () => {
     const handler = vi.fn().mockImplementation(async (request: NextRequest) => {
       const url = new URL(request.url);
@@ -445,7 +442,7 @@ describe('Integration Tests', () => {
     const successResponse = await wrappedHandler(successRequest);
     expect(successResponse.status).toBe(200);
 
-    // バリデーションエラー
+    // バリチE�Eションエラー
     const validationRequest = new MockNextRequest(
       'http://localhost/test?action=validation'
     ) as NextRequest;
