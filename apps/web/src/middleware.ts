@@ -111,16 +111,42 @@ export function middleware(request: NextRequest) {
         } else {
           // 実際のSupabase Auth実装
           // TODO: Supabase Adapterを使用してトークン検証を実装
-          // 現在はモック実装のみ
-          userId = 'mock-user-id';
+          // 暫定措置: 未実装のため501エラーでフェイルクローズ
+          logger.warn(
+            { path: pathname, reason: 'supabase_not_implemented' },
+            'Supabase authentication not implemented'
+          );
+
+          if (pathname.startsWith('/api/')) {
+            return NextResponse.json(
+              { 
+                code: 'NOT_IMPLEMENTED', 
+                message: 'Supabase authentication not yet implemented' 
+              },
+              { status: 501 }
+            );
+          }
+
+          const loginUrl = new URL('/auth/login', request.url);
+          loginUrl.searchParams.set('redirect', pathname);
+          loginUrl.searchParams.set('error', 'not_implemented');
+          return NextResponse.redirect(loginUrl);
         }
 
-        // 認証済みユーザーIDをヘッダーに安全に設定
+        // 認証済みユーザーIDをリクエストヘッダーに安全に設定
         // これはmiddlewareでのみ設定可能で、クライアントからは偽装不可能
-        response.headers.set('x-authenticated-user-id', userId);
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set('x-authenticated-user-id', userId);
+        
+        // リクエストヘッダーを更新してルートに伝播
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
 
         logger.info(
-          { path: pathname, authenticated: true, userId },
+          { path: pathname, authenticated: true, userId: userId || undefined },
           'Authenticated access to protected path'
         );
       }
@@ -137,6 +163,7 @@ export function middleware(request: NextRequest) {
         'Request completed'
       );
 
+      // 認証が不要なパスの場合は通常のレスポンスを返す
       return response;
     });
   } catch (error) {

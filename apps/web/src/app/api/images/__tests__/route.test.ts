@@ -1,13 +1,13 @@
 /**
- * 画像管理API のテスト
- * 要件 4.1-4.4: 画像管理機能のテスト
+ * 画像管琁EPI のチE��チE
+ * 要件 4.1-4.4: 画像管琁E���EのチE��チE
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
 
-// モック設定
+// モチE��設宁E
 vi.mock('@template-gamma/bff/images', () => ({
   ImageServiceFactory: {
     create: vi.fn(() => ({
@@ -75,7 +75,7 @@ describe('/api/images', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/images?page=1&limit=20'
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await GET(request);
       const data = await response.json();
@@ -93,8 +93,7 @@ describe('/api/images', () => {
 
     it('should return 401 when user is not authenticated', async () => {
       const request = new NextRequest('http://localhost:3000/api/images');
-      // x-user-id ヘッダーを設定しない
-
+      // x-authenticated-user-id ヘッダーを設定しなぁE
       const response = await GET(request);
       const data = await response.json();
 
@@ -120,7 +119,7 @@ describe('/api/images', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/images?page=2&limit=50'
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await GET(request);
 
@@ -156,7 +155,7 @@ describe('/api/images', () => {
         mockImageService as any
       );
 
-      // FormData を作成
+      // FormData を作�E
       const formData = new FormData();
       const file = new File(['test content'], 'upload.jpg', {
         type: 'image/jpeg',
@@ -167,7 +166,7 @@ describe('/api/images', () => {
         method: 'POST',
         body: formData,
       });
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await POST(request);
       const data = await response.json();
@@ -195,8 +194,7 @@ describe('/api/images', () => {
         method: 'POST',
         body: formData,
       });
-      // x-user-id ヘッダーを設定しない
-
+      // x-authenticated-user-id ヘッダーを設定しなぁE
       const response = await POST(request);
       const data = await response.json();
 
@@ -206,13 +204,12 @@ describe('/api/images', () => {
 
     it('should return 422 when file is missing', async () => {
       const formData = new FormData();
-      // ファイルを追加しない
-
+      // ファイルを追加しなぁE
       const request = new NextRequest('http://localhost:3000/api/images', {
         method: 'POST',
         body: formData,
       });
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await POST(request);
       const data = await response.json();

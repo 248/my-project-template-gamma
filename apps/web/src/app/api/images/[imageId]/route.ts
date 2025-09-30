@@ -43,8 +43,8 @@ export async function DELETE(
     // パスパラメータの検証
     const { imageId } = paramsSchema.parse(params);
 
-    // 認証チェック（簡易版 - 実際の実装では middleware で処理）
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       return NextResponse.json(
         { code: ERROR_CODES.AUTH_REQUIRED, message: 'Authentication required' },
@@ -100,8 +100,8 @@ export async function GET(
     // パスパラメータの検証
     const { imageId } = paramsSchema.parse(params);
 
-    // 認証チェック（簡易版 - 実際の実装では middleware で処理）
-    const userId = request.headers.get('x-user-id');
+    // 認証情報を取得（middlewareで安全に設定されたヘッダーから取得）
+    const userId = request.headers.get('x-authenticated-user-id');
     if (!userId) {
       return NextResponse.json(
         { code: ERROR_CODES.AUTH_REQUIRED, message: 'Authentication required' },

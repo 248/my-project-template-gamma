@@ -67,7 +67,7 @@ describe('/api/images/[imageId]', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/images/test-image-id'
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await GET(request, {
         params: { imageId: 'test-image-id' },
@@ -87,7 +87,7 @@ describe('/api/images/[imageId]', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/images/test-image-id'
       );
-      // x-user-id ヘッダーを設定しない
+      // x-authenticated-user-id ヘッダーを設定しない
 
       const response = await GET(request, {
         params: { imageId: 'test-image-id' },
@@ -102,7 +102,7 @@ describe('/api/images/[imageId]', () => {
       const request = new NextRequest(
         'http://localhost:3000/api/images/invalid-id'
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await GET(request, {
         params: { imageId: 'invalid-id' },
@@ -133,7 +133,7 @@ describe('/api/images/[imageId]', () => {
           method: 'DELETE',
         }
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await DELETE(request, {
         params: { imageId: 'test-image-id' },
@@ -153,7 +153,7 @@ describe('/api/images/[imageId]', () => {
           method: 'DELETE',
         }
       );
-      // x-user-id ヘッダーを設定しない
+      // x-authenticated-user-id ヘッダーを設定しない
 
       const response = await DELETE(request, {
         params: { imageId: 'test-image-id' },
@@ -171,7 +171,7 @@ describe('/api/images/[imageId]', () => {
           method: 'DELETE',
         }
       );
-      request.headers.set('x-user-id', 'test-user-id');
+      request.headers.set('x-authenticated-user-id', 'test-user-id');
 
       const response = await DELETE(request, {
         params: { imageId: 'invalid-id' },

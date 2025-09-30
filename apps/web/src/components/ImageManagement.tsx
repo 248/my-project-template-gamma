@@ -37,11 +37,7 @@ export default function ImageManagement() {
     setError(null);
 
     try {
-      const response = await fetch('/api/images?page=1&limit=20', {
-        headers: {
-          'x-user-id': '550e8400-e29b-41d4-a716-446655440000', // 実際の実装では認証から取得
-        },
-      });
+      const response = await fetch('/api/images?page=1&limit=20');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -100,9 +96,6 @@ export default function ImageManagement() {
 
       const response = await fetch('/api/images', {
         method: 'POST',
-        headers: {
-          'x-user-id': '550e8400-e29b-41d4-a716-446655440000', // 実際の実装では認証から取得
-        },
         body: formData,
       });
 
@@ -148,9 +141,6 @@ export default function ImageManagement() {
     try {
       const response = await fetch(`/api/images/${imageId}`, {
         method: 'DELETE',
-        headers: {
-          'x-user-id': '550e8400-e29b-41d4-a716-446655440000', // 実際の実装では認証から取得
-        },
       });
 
       if (!response.ok) {
