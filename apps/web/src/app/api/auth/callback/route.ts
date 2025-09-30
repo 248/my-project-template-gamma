@@ -80,9 +80,26 @@ export async function GET(request: NextRequest) {
 
       // ユーザー情報をDBに保存（モック）
       logger.info({ user: mockSession.user }, 'Mock user session created');
-      logger.info('Cookies set, redirecting to /home');
+      logger.info('Cookies set, returning success response');
 
-      return NextResponse.redirect(new URL('/home', request.url));
+      // フロントエンドコールバックからの呼び出しの場合はJSONレスポンスを返す
+      const userAgent = request.headers.get('user-agent') || '';
+      const isApiCall =
+        request.headers.get('accept')?.includes('application/json') ||
+        userAgent.includes('fetch') ||
+        request.headers.get('sec-fetch-mode') === 'cors';
+
+      if (isApiCall) {
+        return NextResponse.json({
+          success: true,
+          user: mockSession.user,
+        });
+      }
+
+      // 直接アクセスの場合はリダイレクト（後方互換性のため）
+      const redirect = searchParams.get('redirect');
+      const redirectUrl = redirect || '/home';
+      return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
 
     // 実際のSupabase Auth実装

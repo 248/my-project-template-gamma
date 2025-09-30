@@ -19,6 +19,7 @@ function CallbackProcessor() {
         const code = searchParams.get('code');
         const provider = searchParams.get('provider') || 'github';
         const redirect = searchParams.get('redirect');
+        const state = searchParams.get('state');
 
         if (!code) {
           setStatus('error');
@@ -26,35 +27,46 @@ function CallbackProcessor() {
           return;
         }
 
+        if (!state) {
+          setStatus('error');
+          setMessage('認証状態が無効です。');
+          return;
+        }
+
         setMessage(`${provider} 認証を処理中...`);
 
-        // コールバック処理APIを呼び出し
-        const callbackUrl = new URL(
+        // APIコールバックを呼び出してセッションを確立
+        const apiCallbackUrl = new URL(
           '/api/auth/callback',
           window.location.origin
         );
-        callbackUrl.searchParams.set('code', code);
-        callbackUrl.searchParams.set('provider', provider);
+        apiCallbackUrl.searchParams.set('code', code);
+        apiCallbackUrl.searchParams.set('provider', provider);
+        apiCallbackUrl.searchParams.set('state', state);
+        if (redirect) {
+          apiCallbackUrl.searchParams.set('redirect', redirect);
+        }
 
-        const response = await fetch(callbackUrl.toString(), {
+        // APIコールバックを呼び出し（リダイレクトではなくfetch）
+        const response = await fetch(apiCallbackUrl.toString(), {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'include', // Cookieを含める
         });
 
-        if (response.redirected) {
-          // リダイレクトされた場合（成功）
-          setStatus('success');
-          setMessage('ログインに成功しました。リダイレクトします...');
-
-          // リダイレクト先を決定
-          const redirectUrl = redirect || '/home';
-
-          setTimeout(() => {
-            router.push(redirectUrl);
-          }, 1500);
-        } else if (!response.ok) {
-          throw new Error(`Callback failed: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`API callback failed: ${response.status}`);
         }
+
+        // 認証成功
+        setStatus('success');
+        setMessage('ログインに成功しました。リダイレクトします...');
+
+        // リダイレクト先を決定
+        const redirectUrl = redirect || '/home';
+
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 1500);
       } catch (error) {
         clientLogger.error({ err: error }, 'Callback processing failed');
         setStatus('error');

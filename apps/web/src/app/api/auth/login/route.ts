@@ -46,6 +46,12 @@ export async function GET(request: NextRequest) {
       callbackUrl.searchParams.set('provider', provider);
       callbackUrl.searchParams.set('state', state);
 
+      // redirectパラメータがあれば転送
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        callbackUrl.searchParams.set('redirect', redirect);
+      }
+
       return NextResponse.redirect(callbackUrl);
     }
 
