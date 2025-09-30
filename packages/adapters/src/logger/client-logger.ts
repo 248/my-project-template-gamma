@@ -127,6 +127,15 @@ export class ClientLogger implements Logger {
       };
     }
 
+    // error プロパティの処理も追加
+    if (redacted.error && redacted.error instanceof Error) {
+      redacted.error = {
+        name: redacted.error.name,
+        message: redacted.error.message,
+        stack: redacted.error.stack,
+      };
+    }
+
     return redacted;
   }
 }
@@ -232,6 +241,15 @@ class ClientLoggerChild implements Logger {
         name: redacted.err.name,
         message: redacted.err.message,
         stack: redacted.err.stack,
+      };
+    }
+
+    // error プロパティの処理も追加
+    if (redacted.error && redacted.error instanceof Error) {
+      redacted.error = {
+        name: redacted.error.name,
+        message: redacted.error.message,
+        stack: redacted.error.stack,
       };
     }
 

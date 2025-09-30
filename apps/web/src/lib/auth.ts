@@ -36,7 +36,10 @@ export async function checkAuthStatus(): Promise<{
       isAuthenticated: false,
     };
   } catch (error) {
-    clientLogger.error({ err: error }, 'Auth status check failed');
+    clientLogger.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Auth status check failed'
+    );
     return {
       user: null,
       isAuthenticated: false,
@@ -56,7 +59,10 @@ export async function logout(): Promise<boolean> {
 
     return response.ok;
   } catch (error) {
-    clientLogger.error({ err: error }, 'Logout failed');
+    clientLogger.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Logout failed'
+    );
     return false;
   }
 }

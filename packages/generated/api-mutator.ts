@@ -128,7 +128,10 @@ const customFetch = async <T = any>(
     // 開発環境でのエラーログ
     if (process.env.NODE_ENV === 'development') {
       const { clientLogger } = require('../../../apps/web/src/lib/logger');
-      clientLogger.error({ err: error, url }, 'API Network Error');
+      clientLogger.error(
+        { error: error instanceof Error ? error.message : String(error), url },
+        'API Network Error'
+      );
     }
 
     throw new ApiError(

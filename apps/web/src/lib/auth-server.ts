@@ -39,7 +39,10 @@ export async function getCurrentUser(): Promise<User | null> {
     return null;
   } catch (error) {
     const logger = createLogger();
-    logger.error({ err: error }, 'Failed to get current user');
+    logger.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to get current user'
+    );
     return null;
   }
 }

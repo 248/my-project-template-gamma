@@ -34,7 +34,10 @@ const defaultConfig: ApiClientConfig = {
     if (process.env.NODE_ENV === 'development') {
       // 構造化ログでエラーを記録
       const { clientLogger } = require('../../../apps/web/src/lib/logger');
-      clientLogger.error({ err: error }, 'API Error');
+      clientLogger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'API Error'
+      );
     }
   },
   onRequest: (url, options) => {
