@@ -127,7 +127,9 @@ export const server = setupServer(
   // Images API モック
   http.get('/api/images', ({ request }) => {
     const authHeader = request.headers.get('Cookie');
-    if (!authHeader?.includes('sb-access-token')) {
+    const userIdHeader = request.headers.get('x-authenticated-user-id');
+
+    if (!authHeader?.includes('sb-access-token') && !userIdHeader) {
       return HttpResponse.json(
         { code: 'AUTH_REQUIRED', message: 'Authentication required' },
         { status: 401 }
@@ -179,10 +181,18 @@ export const server = setupServer(
 
   http.post('/api/images', async ({ request }) => {
     const authHeader = request.headers.get('Cookie');
-    if (!authHeader?.includes('sb-access-token')) {
+    const userIdHeader = request.headers.get('x-authenticated-user-id');
+    const requestId = crypto.randomUUID();
+
+    if (!authHeader?.includes('sb-access-token') && !userIdHeader) {
       return HttpResponse.json(
         { code: 'AUTH_REQUIRED', message: 'Authentication required' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'x-request-id': requestId,
+          },
+        }
       );
     }
 
@@ -195,7 +205,12 @@ export const server = setupServer(
           code: 'VALIDATION_ERROR',
           message: 'File upload required',
         },
-        { status: 422 }
+        {
+          status: 422,
+          headers: {
+            'x-request-id': requestId,
+          },
+        }
       );
     }
 
@@ -206,7 +221,12 @@ export const server = setupServer(
         status: 'uploading',
         createdAt: new Date().toISOString(),
       },
-      { status: 201 }
+      {
+        status: 201,
+        headers: {
+          'x-request-id': requestId,
+        },
+      }
     );
   }),
 

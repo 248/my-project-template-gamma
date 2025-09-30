@@ -3,38 +3,21 @@ import { test as setup, expect } from '@playwright/test';
 const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
-  // 認証セッションのセットアップ
-  // 実際のOAuth フローの代わりにモックセッションを使用
-
+  // モック認証を使用してログイン
   await page.goto('/');
 
-  // ログインボタンが表示されることを確認
-  await expect(
-    page.getByRole('button', { name: /ログイン|login/i })
-  ).toBeVisible();
+  // ログインボタンをクリック
+  const loginButton = page.getByRole('button', { name: /ログイン|login/i });
+  await expect(loginButton).toBeVisible();
+  await loginButton.click();
 
-  // モック認証のためのクッキーを設定
-  // 実際の実装では、テスト用のOAuth プロバイダーまたはモックを使用
-  await page.context().addCookies([
-    {
-      name: 'sb-access-token',
-      value: 'mock-test-token-for-e2e',
-      domain: 'localhost',
-      path: '/',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Lax',
-    },
-    {
-      name: 'sb-refresh-token',
-      value: 'mock-refresh-token-for-e2e',
-      domain: 'localhost',
-      path: '/',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Lax',
-    },
-  ]);
+  // モック認証の場合、直接コールバックページに移動
+  if (process.env.USE_MOCK_SUPABASE === 'true') {
+    await page.goto('/auth/callback?code=mock-auth-code&provider=google');
+  }
+
+  // ホームページにリダイレクトされることを確認
+  await expect(page).toHaveURL('/home');
 
   // 認証状態を保存
   await page.context().storageState({ path: authFile });

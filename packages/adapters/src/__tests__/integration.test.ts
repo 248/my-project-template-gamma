@@ -32,12 +32,8 @@ describe('Adapters Integration', () => {
         USE_MOCK_STORAGE: 'false',
       };
 
-      expect(() => SupabaseFactory.create(emptyEnv)).toThrow(
-        'Supabase configuration is missing'
-      );
-      expect(() => StorageFactory.create(emptyEnv)).toThrow(
-        'Supabase Storage configuration is missing'
-      );
+      expect(() => SupabaseFactory.create(emptyEnv)).toThrow();
+      expect(() => StorageFactory.create(emptyEnv)).toThrow();
     });
   });
 

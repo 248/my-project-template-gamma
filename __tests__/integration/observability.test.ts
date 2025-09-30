@@ -70,12 +70,16 @@ describe('観測性機能の統合テスト', () => {
 
     it('子スパンが正常に生成される', () => {
       const parentContext = TraceContext.createRequestContext();
-      const childSpan = TraceContext.createChildSpanFromCurrent();
 
-      expect(childSpan).toBeDefined();
-      expect(childSpan!.traceId).toBe(parentContext.traceInfo.traceId);
-      expect(childSpan!.parentId).toBe(parentContext.traceInfo.spanId);
-      expect(childSpan!.spanId).not.toBe(parentContext.traceInfo.spanId);
+      // コンテキストを設定してから子スパンを生成
+      TraceContext.runWithContext(parentContext, () => {
+        const childSpan = TraceContext.createChildSpanFromCurrent();
+
+        expect(childSpan).toBeDefined();
+        expect(childSpan!.traceId).toBe(parentContext.traceInfo.traceId);
+        expect(childSpan!.parentId).toBe(parentContext.traceInfo.spanId);
+        expect(childSpan!.spanId).not.toBe(parentContext.traceInfo.spanId);
+      });
     });
 
     it('traceparentヘッダーが正常に生成される', () => {
